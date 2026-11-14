@@ -5,7 +5,27 @@ challenge plus a standalone test app. It does **not** identify grass or prove
 physical contact. Repeated walking, waving, or other similar movements may pass.
 No gyro, network, GPS, or machine-learning model is needed for this slice.
 
-## Run
+## Run on Windows
+
+From the repository root in PowerShell:
+
+```powershell
+# Build + launch the demo in the simulator (fenix7 by default)
+powershell -ExecutionPolicy Bypass -File demo\motion\run-windows.ps1
+# Build + run the contract tests
+powershell -ExecutionPolicy Bypass -File demo\motion\run-windows.ps1 -Test
+# Other device / explicit key
+powershell -ExecutionPolicy Bypass -File demo\motion\run-windows.ps1 -Device fenix7s -Key C:\path\to\developer_key
+```
+
+The script reads the active SDK from `%APPDATA%\Garmin\ConnectIQ\current-sdk.cfg`
+and the signing key from `-Key`, `GARMIN_DEVELOPER_KEY`, or the VS Code
+`monkeyC.developerKeyPath` setting. It starts `simulator.exe` if needed. Note that
+Windows `monkeydo.bat` uses `/t` for tests, not `-t`. On Windows the test run
+exits 0 on success. FIT fixtures can be loaded straight from
+`demo\motion\fixtures\` because there is no container on Windows.
+
+## Run on Linux
 
 Use the repository's `running-garmin-simulator` skill for Linux SDK setup.
 Reuse the installed SDK, simulator, and private developer key. These commands

@@ -12,6 +12,8 @@ This skill documents a **Linux-only workflow**, verified on Debian 13. Check the
 
 **Windows users follow a different process:** use Garmin's native Windows SDK Manager and the Windows instructions in Garmin's [getting-started guide](https://developer.garmin.com/connect-iq/connect-iq-basics/getting-started/) and [command-line setup guide](https://developer.garmin.com/connect-iq/reference-guides/monkey-c-command-line-setup/), or the Garmin Monkey C extension for Visual Studio Code. On Windows, direct the session to those instructions instead of executing this skill's Linux workflow. The Linux compatibility container and local launchers described here are not prerequisites for Windows. Windows and macOS setup have not been verified by this skill.
 
+**On Windows, use the `running-garmin-simulator-windows` skill instead.**
+
 Run this workflow on the user's Linux desktop, from the repository root. The installed SDK, device profiles, signing key, Docker image, and graphical session belong to that machine; a fresh cloud checkout does not contain them. This is a Monkey C watch app, not a web app. No Node server is needed to run the starter.
 
 ## Check the existing setup
