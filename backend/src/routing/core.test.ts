@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { findGrassRoute, isFailure, RoutingError, validatePlan, type Candidate, type RoutingProvider } from "./index.ts";
+import { findGrassRoute, fixtureProviderFromEnv, isFailure, RoutingError, validatePlan, type Candidate, type RoutingProvider } from "./index.ts";
 import { haversineM, routeLengthM } from "./geo.ts";
 import { simplifyToCap } from "./simplify.ts";
 
@@ -83,6 +83,17 @@ test("simplifyToCap keeps endpoints and protected ring vertices", () => {
   assert.equal(out.length, 4);
   assert.ok(out.some((p) => p[0] === 10 && p[1] === 2000));
   assert.equal(simplifyToCap(ring, 1, { closed: true }).length, 3);
+});
+
+test("FIXTURE_FILE serves the simulator walk's route (demo/walk) as a valid fixture plan", async () => {
+  const p = fixtureProviderFromEnv({ FIXTURE_FILE: "demo/walk/fixtures/route-edmonton.json" });
+  const r = await findGrassRoute(ORIGIN[0], ORIGIN[1], 120, p);
+  assert.ok(!isFailure(r));
+  assert.equal(r.source, "fixture");
+  assert.deepEqual(validatePlan(r), []);
+  assert.ok(r.attribution.includes("OpenStreetMap"));
+  const missing = await findGrassRoute(ORIGIN[0], ORIGIN[1], 120, fixtureProviderFromEnv({ FIXTURE_FILE: "nope.json" }));
+  assert.ok(isFailure(missing) && missing.error.code === "PROVIDER_UNAVAILABLE");
 });
 
 test("validatePlan flags contract violations", async () => {

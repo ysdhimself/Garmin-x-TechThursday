@@ -43,23 +43,32 @@ A green block means "drawn as green space on the map". It does not prove grass o
    - cost: about 330–600 input tokens per block. 64 px blocks over a 120 s walk area = 144 blocks ≈ 18 requests, ~3–4 s.
 3. Set `ROUTER_URL` to a foot-profile OSRM-compatible router (self-host OSRM with the foot profile, or Valhalla/ORS
    behind an OSRM-style adapter). The public OSRM demo may route by car.
-4. No dependencies: Node 24 runs the TypeScript directly, and PNG decoding uses Node's built-in `zlib`.
-   If Part 3 adds a `tsconfig.json`, it needs `allowImportingTsExtensions` and `erasableSyntaxOnly`.
+4. No dependencies: Node 22.6+ runs the TypeScript directly, and PNG decoding uses Node's built-in `zlib`.
+   Part 3's `tsconfig.json` sets `allowImportingTsExtensions` and `erasableSyntaxOnly`.
 
 ## Run
 
 ```
-node --test backend/src/routing/core.test.ts backend/src/routing/discovery.test.ts   # offline, no network
-node backend/scripts/live-check.ts 53.546 -113.4938                                  # real tiles + JEV + router
-CLASSIFIER=color node backend/scripts/live-check.ts 53.546 -113.4938 120 <outDir>    # without a JEV key
+cd backend
+npm test                                                                             # offline, no network
+npm run live-check -- 53.546 -113.4938                                               # real tiles + JEV + router
+CLASSIFIER=color npm run live-check -- 53.546 -113.4938 120 <outDir>                 # without a JEV key
 ```
 
-Dev HTTP server (same contract as Part 3's future service, for testing only; no HTTPS, no rate limiting):
+Production server (Part 3: CORS, rate limiting, size enforcement):
 
 ```
-node backend/scripts/dev-server.ts        # http://localhost:8787, mode from ROUTING_MODE in backend/.env
+cd backend
+npm start                     # http://0.0.0.0:8787, mode from ROUTING_MODE in backend/.env
 curl localhost:8787/health
-curl -X POST localhost:8787/walk-plan -H "Content-Type: application/json" -d "{\"originLatE6\":53546000,\"originLonE6\":-113493800,\"maxWalkS\":120}"
+curl -X POST localhost:8787/walk-plan -H "Content-Type: application/json" -d '{"originLatE6":53546000,"originLonE6":-113493800,"maxWalkS":120}'
+bash scripts/smoke-test.sh    # 7-check HTTP smoke test
+```
+
+Dev HTTP server (Part 2 testing only; no CORS, no rate limiting):
+
+```
+npm run dev                   # same contract, same port
 ```
 
 `live-check` writes `live-check.png` (map, block grid, green blocks tinted, origin in red) and `live-check.geojson`
@@ -71,7 +80,7 @@ curl -X POST localhost:8787/walk-plan -H "Content-Type: application/json" -d "{\
 | --- | --- |
 | `types.ts` | Contract types and `LIMITS`. Change only with Parts 1, 3, 4 |
 | `findGrassRoute.ts` | Pipeline: input check → provider → budget check → simplify → validate/shrink |
-| `providers/fixture.ts` | Serves `fixtures/routes/demo-park.json` (`source: "fixture"`) |
+| `providers/fixture.ts` | Serves `backend/fixtures/routes/demo-park.json` (`source: "fixture"`) |
 | `providers/live.ts` | Live pipeline + `liveProviderFromEnv()` |
 | `providers/tiles.ts` | Fetch + stitch map tiles (10-min tile cache, max 25 tiles) |
 | `providers/blocks.ts` | Cut the stitched map into blocks |
