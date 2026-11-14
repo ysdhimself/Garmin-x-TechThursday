@@ -7,8 +7,9 @@ class touch_grassDelegate extends WatchUi.BehaviorDelegate {
         BehaviorDelegate.initialize();
     }
 
-    function onMenu() as Boolean {
-        WatchUi.pushView(new Rez.Menus.MainMenu(), new touch_grassMenuDelegate(), WatchUi.SLIDE_UP);
+    // START (or a tap) moves to the next flow state.
+    function onSelect() as Boolean {
+        getApp().advanceFlow();
         return true;
     }
 

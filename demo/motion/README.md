@@ -137,7 +137,7 @@ challenge.cancel();
 
 Part 1 integration requires the `Sensor` permission in the **main** manifest
 and removal of `base.excludeAnnotations = motion` from its `monkey.jungle`.
-That temporary exclusion keeps the unchanged starter build working until it
+That temporary exclusion keeps the main app build working until it
 owns sensor permission and calls this module from its arrival/Start screen.
 No main views or main manifest were changed. Keep the scenario generator and
 test/demo UI out of the production build.

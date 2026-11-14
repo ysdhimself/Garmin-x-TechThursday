@@ -1,33 +1,44 @@
 import Toybox.Graphics;
+import Toybox.Lang;
 import Toybox.WatchUi;
 
 class touch_grassView extends WatchUi.View {
+
+    // Indexed by FlowState; keep in the same order as the enum.
+    private const TITLES = [
+        "Passive",
+        "Touch grass time!",
+        "Get to the grass",
+        "You arrived",
+        "You proved it",
+        "All done"
+    ];
+    private const DETAILS = [
+        "Waiting for grass time",
+        "Time to go outside",
+        "Map goes here",
+        "Prove it",
+        "Touch the grass",
+        "Back to passive next"
+    ];
 
     function initialize() {
         View.initialize();
     }
 
-    // Load your resources here
-    function onLayout(dc as Dc) as Void {
-        setLayout(Rez.Layouts.MainLayout(dc));
-    }
-
-    // Called when this View is brought to the foreground. Restore
-    // the state of this View and prepare it to be shown. This includes
-    // loading resources into memory.
-    function onShow() as Void {
-    }
-
-    // Update the view
     function onUpdate(dc as Dc) as Void {
-        // Call the parent onUpdate function to redraw the layout
-        View.onUpdate(dc);
-    }
+        var state = getApp().flowState;
+        var x = dc.getWidth() / 2;
+        var y = dc.getHeight() / 2;
+        var center = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
 
-    // Called when this View is removed from the screen. Save the
-    // state of this View here. This includes freeing resources from
-    // memory.
-    function onHide() as Void {
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.clear();
+        dc.drawText(x, y - 55, Graphics.FONT_XTINY, (state + 1) + "/" + TITLES.size(), center);
+        dc.drawText(x, y - 10, Graphics.FONT_SMALL, TITLES[state], center);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x, y + 25, Graphics.FONT_XTINY, DETAILS[state], center);
+        dc.drawText(x, y + 75, Graphics.FONT_XTINY, "START: next", center);
     }
 
 }

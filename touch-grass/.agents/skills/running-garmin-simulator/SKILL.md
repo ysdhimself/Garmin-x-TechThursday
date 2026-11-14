@@ -42,7 +42,7 @@ These launchers are machine-local, not files supplied by this repository. Inspec
 
 Ensure `/.amp/in/` is in the repository-local Git exclude file before writing outputs there. Find that file with `git rev-parse --git-path info/exclude` and preserve its existing rules.
 
-Set `DEVICE` to the chosen manifest target. For the unchanged starter:
+Set `DEVICE` to the chosen manifest target. For the current app:
 
 ```bash
 DEVICE=fenix7s
@@ -78,7 +78,7 @@ import -window WINDOW_ID .amp/in/artifacts/simulator-running.png
 
 Replace `WINDOW_ID` with the ID from the current window list. Inspect the capture with `view_media`, stating the screen expected from the current app source. Use an available desktop screenshot tool if ImageMagick `import` is unavailable. A screenshot saved without inspection is not verification.
 
-The unchanged starter displays a cartoon monkey and the prompt `Click the menu button`. Its prompt is clipped by the round watch display; that existing layout issue does not mean setup failed. The planned map, route, and gesture flow is not implemented by the starter. If the code changes, verify its actual expected screen instead.
+The app opens on a placeholder flow screen showing `1/6` and `Passive`; START advances through the six flow states and wraps back to `Passive`. The planned map, route, and gesture flow is not implemented yet. If the code changes, verify its actual expected screen instead.
 
 Report the build result, observed screen, and any remaining blocker. Include the inspected screenshot in the handoff and leave the simulator running for the user.
 
