@@ -3,26 +3,30 @@
 The off-watch service for the Touch Grass fēnix 7 app. It takes the user's location and returns a small
 walking plan: the nearest green space, an entry point, and a short pedestrian route to it.
 
-The watch makes **one request** per walk. Everything after that (walking, arrival, the hand-wave check) runs on
-the watch. The backend stores nothing, keeps no record of the walk and never sees the result.
+Routing takes **one request** per walk. The optional photo-verification flow also uses this server:
+the watch creates a short-lived session, a phone submits camera frames to JEV, and the watch polls for the result.
+Sessions live in memory for ten minutes; photos are not saved by this app. This is a playful visual check, not
+tamper-proof evidence of physical contact. GPS and walking integration are still separate unfinished work.
 
 For the module-level detail (file table, JEV API notes, status checklist), see
 [`src/routing/README.md`](src/routing/README.md). The shared contract lives in [`../PROJECT_PLAN.md`](../PROJECT_PLAN.md).
 
 ## Quick start
 
-Requires Node 22.6+ (developed on Node 24). There are no npm dependencies; Node runs the TypeScript directly.
+Requires Node 22.18+ (developed on Node 24). Node runs TypeScript directly. The `qrcode` dependency generates
+watch-readable QR matrices on the backend because the target watches do not support Garmin's API 6 QR generator.
 
 ```powershell
 cd backend
 
 # 1. Config: copy the template and fill in your JEV key (backend/.env is git-ignored)
 Copy-Item .env.example .env
+npm ci
 
 # 2. Start the production server (http://0.0.0.0:8787, with CORS + rate limiting)
 npm start
 
-# Or start the Part 2 dev server (same contract, no CORS/rate limiting)
+# For phone photo verification, use the dev server (routing + photo endpoints)
 # npm run dev
 
 # 3. In a second terminal
@@ -37,13 +41,57 @@ On macOS/Linux, use `cp` and `curl -X POST ... -d '<json>'` instead. In Windows 
 Other checks:
 
 ```powershell
-npm test                                                                             # offline tests, no network
+npm test                                                                             # offline routing + photo HTTP tests
 npm run live-check -- 53.546 -113.4938 120 $env:TEMP                                 # real tiles + JEV + router, debug image
 bash scripts/smoke-test.sh                                                           # HTTP smoke test (start server first)
 ```
 
 `live-check` writes `live-check.png` (map, block grid, green blocks tinted, origin in red) and `live-check.geojson`
 (paste into geojson.io) to the folder you give it.
+
+## Phone camera / Prove it
+
+1. Run `npm run dev` in `backend/` with `JEV_API_KEY` configured. The production entry point (`npm start`) serves
+   routing only. Photo verification uses `JEV_API_URL` and `JEV_MODEL` just like
+   map classification; it does not use `CLASSIFIER=color` as a substitute for photo checking.
+2. For a real phone, expose port **8787** through a trusted HTTPS reverse proxy or tunnel. Set
+   `PUBLIC_BASE_URL=https://your-host.example` and restart the server. It must be an origin, without a path or
+   login wall. Configure Garmin's **Photo verification backend URL** (`PhotoBaseUrl`) to the same origin.
+   The default loopback URL works only on this machine, not on your phone.
+3. Advance the watch's current mock walking flow to **PROVE IT**. It displays a private QR link. Scan it,
+   read the short AI-checking notice, and tap **Open camera** to enable the rear camera.
+4. Show your hand touching grass or any plant, including a leaf, flower, shrub, or potted plant. Light or partly
+   obscured contact is enough; the check is deliberately lenient. The page crops a 384 × 384 PNG and sends at most one frame per second,
+   with one request in flight. Slow checks reduce the frame rate; they never queue a photo backlog.
+5. A JEV `noul` score **≥ 0.70** latches the session as passed. The camera stops, the page celebrates, and
+   the watch sees the result on its next two-second poll and advances into its existing touch-grass screen.
+   That screen's mock countdown remains unchanged; the new photo gate cannot be skipped with START.
+
+No database, accounts, WebSocket, or phone app installation is required. A single laptop-hosted process is enough.
+**Tailscale Serve** is suitable if the phone and the Garmin Connect connection can reach the tailnet HTTPS host;
+otherwise use a trusted public tunnel or an HTTPS cloud host. Plain `http://192.168…` will not enable the phone
+camera. Hosting/public exposure is a separate explicit action; nothing in this change configures Tailscale,
+deploys a service, or publishes a tunnel.
+
+### Session contract and limits
+
+- `POST /photo-sessions` → `201 { id, url, qr, expiresInS: 600 }`. `id` is a random 96-bit bearer token, not an
+  account ID. `qr` is an array of square binary row strings; the watch adds a four-module white quiet zone.
+- `GET /photo-sessions/{id}` → `{ status: "pending" | "passed", confidence: number | null, threshold: 0.7, expiresInS }`.
+- `POST /photo-sessions/{id}/frame` accepts raw `image/png` (512 KiB maximum, 280–640 pixels per side).
+  It returns the same status shape. Clients never submit a confidence value or a success flag.
+- Missing/expired session: `410 SESSION_EXPIRED`; per-session check limit: `410 CHECK_LIMIT`; image errors:
+  `400/413/415 INVALID_IMAGE`; throttling: `429 RATE_LIMITED`; missing key/provider error: `503 PROVIDER_UNAVAILABLE`.
+  Every API error uses `{ error: { code, message } }`. Failure never marks a session passed.
+- In-memory demo limits: 128 sessions, one new session per five seconds per connecting IP, four concurrent JEV
+  calls globally, one frame per second per session, and 120 checks per session. Sessions disappear on restart.
+  Behind a proxy the IP creation limit is shared by that proxy; there is no trust in spoofable forwarding headers.
+- Frames go to TypeSafe JEV; their retention policy is separate from this app's no-photo-storage policy.
+  The page stops the camera on pause, hiding/leaving the page, errors, expiry, or success. Session URLs and images
+  are excluded from this server's request logs. Configure proxy logs to redact `/p/*` and `/photo-sessions/*` too.
+- Keep this as a trusted demo. A public production service would need durable/shared session storage if scaled,
+  a deployment-wide abuse/spending budget, and real-photo evaluation of the 70% threshold. It is not a liveness
+  detector or an anti-cheating mechanism. Real phone/watch and live photo-classification testing remain required.
 
 ## Architecture
 
@@ -180,6 +228,7 @@ Git-ignored; never commit it. `backend/.env.example` is the committed template.
 | `USER_AGENT` | Sent to tile and routing servers | `touch-grass-demo/0.1` |
 | `PORT` | Server port (both production and dev) | `8787` |
 | `HOST` | Bind address (production server only) | `0.0.0.0` |
+| `PUBLIC_BASE_URL` | HTTPS origin encoded in the phone QR link | `http://127.0.0.1:8787` (local testing only) |
 
 **Cost and fair use:** each JEV block costs about 330–600 input tokens, so one live request is roughly 50–90k tokens
 at 64 px blocks. The OSM tile server and the FOSSGIS router allow light use only; that is fine for a demo, but use
@@ -198,6 +247,7 @@ other hosts for anything more.
 
 - **Real fixture park:** the demo fixture is synthetic; replace it with a checked park near the demo venue.
 - **HTTPS termination:** the production server serves HTTP; use a reverse proxy or tunnel (e.g. ngrok) for HTTPS in the demo.
-- **Simulator test:** a Monkey C `makeWebRequest()` call to this endpoint has not been tried yet.
+- **Real-device photo test:** the photo-session round trip works in the simulator with a synthetic camera and
+  stub JEV scores; real phone/watch HTTPS access and live photo classification remain unverified.
 - **Small parks:** only what the map draws in green counts, and regions smaller than 2 blocks (about 46 m × 92 m)
   are dropped, so very small green patches are not offered.

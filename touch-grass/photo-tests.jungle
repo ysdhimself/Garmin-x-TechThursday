@@ -1,0 +1,3 @@
+# Add after monkey.jungle to compile only watch-source contract tests, without
+# the separate, unfinished motion test fixtures.
+base.sourcePath = source

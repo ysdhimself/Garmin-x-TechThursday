@@ -30,6 +30,14 @@ class touch_grassView extends WatchUi.View {
         View.initialize();
     }
 
+    function onShow() as Void {
+        getApp().viewShown();
+    }
+
+    function onHide() as Void {
+        getApp().viewHidden();
+    }
+
     function onUpdate(dc as Dc) as Void {
         var app = getApp();
         var state = app.flowState;
@@ -55,6 +63,10 @@ class touch_grassView extends WatchUi.View {
         }
         if (state == TOUCH_GRASS) {
             PixelScene.drawTouchGrass(dc, app.touchProgress());
+            return;
+        }
+        if (state == PROVE_IT) {
+            PixelScene.drawProveIt(dc, app.photoSession);
             return;
         }
         var x = dc.getWidth() / 2;

@@ -127,8 +127,63 @@ module PixelScene {
         _dc = null;
     }
 
-    // Touch grass challenge. progress is null before START, then 0.0 to
-    // 1.0; the hand waves and a segmented bar fills while it runs.
+    // Keep the QR itself sharp and still; the meadow and pixel type frame it.
+    function drawProveIt(dc as Dc, session as PhotoSession) as Void {
+        meadow(dc);
+        var width = dc.getWidth();
+        var height = dc.getHeight();
+        var x = width / 2;
+        var small = _cell / 2;
+        PixelFont.draw(dc, "PROVE IT", x, _top + 3 * _cell, small, CLOUD, NAVY);
+
+        // Integer QR modules and a four-module white quiet zone, wholly inside
+        // the round display. Decorations never enter the white square.
+        var rows = session.qr;
+        var limit = (width < height ? width : height) * 0.707106;
+        if (limit > height - 64) { limit = height - 64; }
+        var scale = rows != null ? (limit / (rows.size() + 8)).toNumber() : 0;
+        var size = scale > 0 ? (rows.size() + 8) * scale : (limit / _cell).toNumber() * _cell;
+        var left = (width - size) / 2;
+        var top = (height - size) / 2;
+        dc.setColor(SOIL, SOIL);
+        dc.fillRectangle(left + small, top + small, size + small, size + small);
+        dc.setColor(NAVY, NAVY);
+        dc.fillRectangle(left - small, top - small, size + 2 * small, size + 2 * small);
+        dc.setColor(CLOUD, CLOUD);
+        dc.fillRectangle(left, top, size, size);
+
+        if (rows != null && scale > 0) {
+            dc.setColor(Graphics.COLOR_BLACK, CLOUD);
+            for (var row = 0; row < rows.size(); row += 1) {
+                for (var col = 0; col < rows.size(); col += 1) {
+                    if (rows[row].substring(col, col + 1).equals("1")) {
+                        dc.fillRectangle(left + (col + 4) * scale, top + (row + 4) * scale, scale, scale);
+                    }
+                }
+            }
+        } else {
+            // A small pixel camera stands in while there is no scannable code.
+            cell(23, 20, 14, 10, NAVY);
+            cell(26, 18, 6, 2, NAVY);
+            cell(27, 22, 6, 6, HAZE);
+            cell(28, 23, 4, 4, SKY);
+            cell(34, 21, 2, 2, SUN);
+            var message = "GETTING QR";
+            if (session.status.equals("error")) { message = "NO SIGNAL"; }
+            if (session.status.equals("expired")) { message = "QR EXPIRED"; }
+            if (rows != null) { message = "QR TOO BIG"; }
+            PixelFont.draw(dc, message, x, _top + 35 * _cell, small, NAVY, null);
+        }
+
+        var hint = session.reconnecting ? "WAIT/BACK" : "SCAN/BACK";
+        if (session.status.equals("error") || session.status.equals("expired")) { hint = "START: TRY"; }
+        if (session.status.equals("loading")) { hint = "BACK"; }
+        PixelFont.draw(dc, hint, x, _top + 52 * _cell, small, SUN, SOIL);
+        _dc = null;
+    }
+
+    // The hand waves and the empty bar is visible before START. Only the
+    // challenge progress (0.0 to 1.0 after START) fills the segments.
     function drawTouchGrass(dc as Dc, progress as Float?) as Void {
         meadow(dc);
         if (progress != null && progress >= 1.0) {
@@ -140,30 +195,23 @@ module PixelScene {
         }
 
         title(dc, "PET THE", CLOUD, NAVY, "GRASS", BLADE, SOIL);
-        if (progress == null) {
-            hand(0);
-            footer(dc, "WAVE YOUR HAND", "START: BEGIN");
-            _dc = null;
-            return;
-        }
-
-        // Wave: shift the hand a cell left or right each tenth of the challenge.
-        hand((progress * 10).toNumber() % 2 == 0 ? -1 : 1);
+        hand(System.getTimer() / 250 % 2 == 0 ? -1 : 1);
+        var value = progress == null ? 0.0 : progress;
         var x = dc.getWidth() / 2;
-        PixelFont.draw(dc, "TOUCHING...", x, _top + 42 * _cell, _cell / 2, CLOUD, SOIL);
+        PixelFont.draw(dc, progress == null ? "TAP TO START" : "TOUCHING...", x, _top + 42 * _cell, _cell / 2, CLOUD, SOIL);
         var segments = 8;
-        var filled = (progress * segments).toNumber();
+        var filled = (value * segments).toNumber();
         cell(13, 48, 35, 5, SOIL);
         for (var i = 0; i < segments; i += 1) {
             cell(15 + i * 4, 49, 3, 3, i < filled ? BLADE : GRASS);
         }
-        grassTimer(dc, progress);
+        grassTimer(dc, value);
         _dc = null;
     }
 
     // Yellow digital MM:SS countdown under the bar, derived from the bar's
-    // progress so the two stay in sync (full bar = 00:00). Drawn only while
-    // the challenge runs; rounds up so it starts at the full length.
+    // progress so the two stay in sync (full bar = 00:00). Before START it
+    // holds at the full length; fractional seconds are rounded up.
     function grassTimer(dc as Dc, progress as Float) as Void {
         var remaining = (1.0 - progress) * TOUCH_SECONDS;
         var seconds = remaining.toNumber();

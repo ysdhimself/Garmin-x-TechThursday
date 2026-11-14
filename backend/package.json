@@ -4,12 +4,15 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.18"
   },
   "scripts": {
     "start": "node --experimental-strip-types src/server.ts",
     "dev": "node --experimental-strip-types scripts/dev-server.ts",
-    "test": "node --experimental-strip-types --test src/routing/core.test.ts src/routing/discovery.test.ts",
+    "test": "node --experimental-strip-types --test src/routing/*.test.ts src/photo/*.test.ts",
     "live-check": "node --experimental-strip-types scripts/live-check.ts"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4"
   }
 }
