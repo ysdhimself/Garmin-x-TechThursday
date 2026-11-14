@@ -13,7 +13,7 @@ import Toybox.WatchUi;
 //          Activity Data playback of demo/walk/fixtures/quick-walk.fit (positions arrive as POOR quality).
 //   DEMO - if no position near the route arrives within FALLBACK_MS, a built-in replay of the same 30 s walk:
 //          route-edmonton-short.json (42 m) at 1.4 m/s, then standing at the grass. Same heart-rate / cadence /
-//          calorie model as demo/walk/fixtures/generate.py. Shown as "DEMO DATA" on screen.
+//          calorie model as demo/walk/fixtures/generate.py.
 //
 // Arrival: 3 fixes in a row inside the radius AND stopped, so a walk ends when you stop at the grass rather
 // than when you cross the edge of the radius.
@@ -243,7 +243,6 @@ module WalkData {
     // ---- read by the screens ----
 
     function arrived() as Boolean { return _arrived; }
-    function isDemo() as Boolean { return _mode == DEMO; }
     function hasData() as Boolean { return _lat != null; }
     function summary() { return _summary; }
     function speed() { return _speed; }

@@ -9,6 +9,8 @@ backend reports `passed` with confidence at least `0.70`. The existing mock
 touch countdown still lasts 2.5 seconds. Its empty boxes and waving hand
 appear immediately after verification; tap or press START to begin filling
 them. Until then, the boxes stay empty and the countdown stays at its start.
+After "GRASS TOUCHED", the walk stats appear directly for five seconds,
+then the app returns to its title screen. START skips either wait.
 
 - BACK cancels verification and returns to MAP.
 - START cannot skip verification. After an initial connection error or an

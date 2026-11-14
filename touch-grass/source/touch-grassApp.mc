@@ -14,7 +14,6 @@ enum FlowState {
     WALK,
     PROVE_IT,
     TOUCH_GRASS,
-    DONE,
     SUMMARY
 }
 
@@ -29,9 +28,6 @@ class touch_grassApp extends Application.AppBase {
     private const FAKE_TOUCH_MS = 2500;
     // How long "GRASS TOUCHED" shows before the flow advances on its own.
     private const TOUCHED_HOLD_MS = 2000;
-    // How long "All done" shows before returning to the title screen.
-    private const DONE_HOLD_MS = 2000;
-    private var _doneAt as Number = 0;
     // How long the walk SUMMARY shows before returning to the title screen.
     private const SUMMARY_HOLD_MS = 5000;
     private var _summaryAt as Number = 0;
@@ -158,9 +154,6 @@ class touch_grassApp extends Application.AppBase {
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
             WalkData.start();
             startRedraws(1000);
-        } else if (flowState == DONE) {
-            _doneAt = System.getTimer();
-            startRedraws(250);
         } else if (flowState == SUMMARY) {
             _summaryAt = System.getTimer();
             startRedraws(250);
@@ -240,11 +233,6 @@ class touch_grassApp extends Application.AppBase {
         var startedAt = _touchStartedAt;
         if (flowState == TOUCH_GRASS && startedAt != null
                 && System.getTimer() - startedAt >= FAKE_TOUCH_MS + TOUCHED_HOLD_MS) {
-            advanceFlow();
-            return;
-        }
-        // "All done" shows briefly, then the flow returns to the title screen.
-        if (flowState == DONE && System.getTimer() - _doneAt >= DONE_HOLD_MS) {
             advanceFlow();
             return;
         }

@@ -35,7 +35,7 @@ module PixelScene {
         meadow(dc);
         sun();
         title(dc, "TOUCH", CLOUD, NAVY, "GRASS", BLADE, SOIL);
-        footer(dc, "NO GRASS NEEDED", "START: DEMO");
+        footer(dc, "NO GRASS NEEDED", "START: GO");
         _dc = null;
     }
 
@@ -59,7 +59,7 @@ module PixelScene {
             return;
         }
         title(dc, "WALK TO", CLOUD, NAVY, "GRASS", BLADE, SOIL);
-        PixelFont.draw(dc, big, x, _top + 32 * _cell, _cell * 3 / 4, SUN, SUN_EDGE);
+        PixelFont.draw(dc, big, x, _top + 31 * _cell, _cell * 3 / 4, SUN, SUN_EDGE);
         if (!WalkData.hasData()) {
             PixelFont.draw(dc, "WAITING FOR DATA", x, _top + 42 * _cell, small, CLOUD, SOIL);
             _dc = null;
@@ -78,8 +78,8 @@ module PixelScene {
         for (var i = 0; i < segments; i += 1) {
             cell(15 + i * 4, 49, 3, 3, i < filled ? BLADE : GRASS);
         }
-        PixelFont.draw(dc, WalkData.steps() + " STEPS  " + (WalkData.isDemo() ? "DEMO" : "LIVE"),
-            x, _top + 55 * _cell, small, SUN, SOIL);
+        PixelFont.draw(dc, WalkData.steps() + " STEPS",
+            x, _top + 38 * _cell, small, SUN, SOIL);
         _dc = null;
     }
 

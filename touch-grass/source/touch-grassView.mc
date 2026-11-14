@@ -4,28 +4,6 @@ import Toybox.WatchUi;
 
 class touch_grassView extends WatchUi.View {
 
-    // Indexed by FlowState; keep in the same order as the enum.
-    private const TITLES = [
-        "Passive",
-        "Touch grass time!",
-        "Get to the grass",
-        "Walk to the grass",
-        "You arrived",
-        "You proved it",
-        "All done",
-        "Walk summary"
-    ];
-    private const DETAILS = [
-        "Waiting for grass time",
-        "Time to go outside",
-        "Map goes here",
-        "Walking",
-        "Prove it",
-        "Touch the grass",
-        "Back to passive next",
-        "Stats"
-    ];
-
     function initialize() {
         View.initialize();
     }
@@ -69,17 +47,6 @@ class touch_grassView extends WatchUi.View {
             PixelScene.drawProveIt(dc, app.photoSession);
             return;
         }
-        var x = dc.getWidth() / 2;
-        var y = dc.getHeight() / 2;
-        var center = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
-
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.clear();
-        dc.drawText(x, y - 55, Graphics.FONT_XTINY, (state + 1) + "/" + TITLES.size(), center);
-        dc.drawText(x, y - 10, Graphics.FONT_SMALL, TITLES[state], center);
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(x, y + 25, Graphics.FONT_XTINY, DETAILS[state], center);
-        dc.drawText(x, y + 75, Graphics.FONT_XTINY, "START: next", center);
     }
 
 }
