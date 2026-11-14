@@ -1,0 +1,3 @@
+project.manifest = manifest.xml
+base.sourcePath = source;../../touch-grass/source/motion;../../touch-grass/tests/motion
+base.resourcePath = ../../touch-grass/resources

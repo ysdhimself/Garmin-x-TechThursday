@@ -1,1 +1,3 @@
 project.manifest = manifest.xml
+# Part 1 removes this exclusion when adding Sensor permission and integrating.
+base.excludeAnnotations = motion
