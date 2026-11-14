@@ -79,7 +79,7 @@ class touch_grassApp extends Application.AppBase {
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
             // The watch's own map when it has one; otherwise MapScene is
             // drawn by the main view.
-            if (WatchUi has :MapTrackView) {
+            if (WatchUi has :MapView) {
                 _mapPushed = true;
                 WatchUi.pushView(new touch_grassMapView(), new touch_grassDelegate(), WatchUi.SLIDE_IMMEDIATE);
             }

@@ -94,6 +94,7 @@ module MapScene {
 
         you(dc, project(youPoint()[0], youPoint()[1]));
         card(dc, w);
+        Compass.draw(dc, w / 2 + (62 * _s).toNumber(), (68 * _s).toNumber(), (28 * _s).toNumber());
     }
 
     // Soft elevation lines: two concentric hill outlines.
