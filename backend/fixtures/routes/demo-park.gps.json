@@ -1,69 +1,69 @@
 {
- "description": "GPS replay for demo-park.json. Samples ordered by tS (seconds). Entries with a 'case' field are deliberately bad fixes that must not trigger arrival.",
+ "description": "GPS replay for demo-park.json. Platform Calgary to Central Library Garden. Samples ordered by tS (seconds). Entries with a case field are deliberately bad fixes that must not trigger arrival.",
  "origin": [
-  53546000,
-  -113493800
+  51044277,
+  -114055682
  ],
  "arrivalRadiusM": 25,
  "samples": [
   {
    "tS": 0,
-   "latE6": 53546000,
-   "lonE6": -113493800,
+   "latE6": 51044277,
+   "lonE6": -114055682,
    "quality": "GOOD"
   },
   {
    "tS": 2,
-   "latE6": 53546025,
-   "lonE6": -113493800,
+   "latE6": 51044289,
+   "lonE6": -114055647,
    "quality": "GOOD"
   },
   {
    "tS": 4,
-   "latE6": 53546050,
-   "lonE6": -113493800,
+   "latE6": 51044301,
+   "lonE6": -114055613,
    "quality": "GOOD"
   },
   {
    "tS": 6,
-   "latE6": 53546076,
-   "lonE6": -113493800,
+   "latE6": 51044315,
+   "lonE6": -114055584,
    "quality": "GOOD"
   },
   {
    "tS": 8,
-   "latE6": 53546101,
-   "lonE6": -113493800,
+   "latE6": 51044340,
+   "lonE6": -114055585,
    "quality": "GOOD"
   },
   {
    "tS": 10,
-   "latE6": 53546126,
-   "lonE6": -113493800,
+   "latE6": 51044365,
+   "lonE6": -114055587,
    "quality": "GOOD"
   },
   {
    "tS": 12,
-   "latE6": 53546151,
-   "lonE6": -113493800,
+   "latE6": 51044390,
+   "lonE6": -114055588,
    "quality": "GOOD"
   },
   {
    "tS": 14,
-   "latE6": 53546176,
-   "lonE6": -113493800,
+   "latE6": 51044414,
+   "lonE6": -114055589,
    "quality": "GOOD"
   },
   {
    "tS": 16,
-   "latE6": 53546201,
-   "lonE6": -113493800,
+   "latE6": 51044439,
+   "lonE6": -114055590,
    "quality": "GOOD"
   },
   {
    "tS": 18,
-   "latE6": 53546227,
-   "lonE6": -113493800,
+   "latE6": 51044464,
+   "lonE6": -114055594,
    "quality": "GOOD"
   },
   {
@@ -75,327 +75,291 @@
   },
   {
    "tS": 20,
-   "latE6": 53546252,
-   "lonE6": -113493800,
+   "latE6": 51044488,
+   "lonE6": -114055600,
    "quality": "GOOD"
   },
   {
    "tS": 22,
-   "latE6": 53546277,
-   "lonE6": -113493800,
+   "latE6": 51044513,
+   "lonE6": -114055603,
    "quality": "GOOD"
   },
   {
    "tS": 24,
-   "latE6": 53546302,
-   "lonE6": -113493800,
+   "latE6": 51044538,
+   "lonE6": -114055602,
    "quality": "GOOD"
   },
   {
    "tS": 26,
-   "latE6": 53546327,
-   "lonE6": -113493800,
+   "latE6": 51044562,
+   "lonE6": -114055600,
    "quality": "GOOD"
   },
   {
    "tS": 28,
-   "latE6": 53546353,
-   "lonE6": -113493800,
+   "latE6": 51044587,
+   "lonE6": -114055598,
    "quality": "GOOD"
   },
   {
    "tS": 30,
-   "latE6": 53546378,
-   "lonE6": -113493800,
+   "latE6": 51044612,
+   "lonE6": -114055596,
    "quality": "GOOD"
   },
   {
    "tS": 32,
-   "latE6": 53546403,
-   "lonE6": -113493800,
+   "latE6": 51044637,
+   "lonE6": -114055594,
    "quality": "GOOD"
   },
   {
    "tS": 34,
-   "latE6": 53546428,
-   "lonE6": -113493800,
+   "latE6": 51044661,
+   "lonE6": -114055593,
    "quality": "GOOD"
   },
   {
    "tS": 36,
-   "latE6": 53546453,
-   "lonE6": -113493800,
+   "latE6": 51044686,
+   "lonE6": -114055591,
    "quality": "GOOD"
   },
   {
-   "tS": 37,
-   "latE6": 53546453,
-   "lonE6": -113493800,
-   "quality": "LAST_KNOWN",
-   "case": "stale-last-known"
-  },
-  {
    "tS": 38,
-   "latE6": 53546478,
-   "lonE6": -113493800,
+   "latE6": 51044711,
+   "lonE6": -114055589,
    "quality": "GOOD"
   },
   {
    "tS": 40,
-   "latE6": 53546504,
-   "lonE6": -113493800,
+   "latE6": 51044736,
+   "lonE6": -114055587,
    "quality": "GOOD"
   },
   {
    "tS": 42,
-   "latE6": 53546529,
-   "lonE6": -113493800,
+   "latE6": 51044760,
+   "lonE6": -114055585,
    "quality": "GOOD"
   },
   {
    "tS": 44,
-   "latE6": 53546554,
-   "lonE6": -113493800,
+   "latE6": 51044785,
+   "lonE6": -114055584,
    "quality": "GOOD"
   },
   {
    "tS": 46,
-   "latE6": 53546579,
-   "lonE6": -113493800,
+   "latE6": 51044810,
+   "lonE6": -114055582,
    "quality": "GOOD"
   },
   {
    "tS": 48,
-   "latE6": 53546604,
-   "lonE6": -113493800,
+   "latE6": 51044835,
+   "lonE6": -114055580,
    "quality": "GOOD"
   },
   {
    "tS": 50,
-   "latE6": 53546630,
-   "lonE6": -113493800,
+   "latE6": 51044859,
+   "lonE6": -114055578,
    "quality": "GOOD"
   },
   {
    "tS": 52,
-   "latE6": 53546655,
-   "lonE6": -113493800,
+   "latE6": 51044884,
+   "lonE6": -114055577,
    "quality": "GOOD"
   },
   {
    "tS": 54,
-   "latE6": 53546680,
-   "lonE6": -113493800,
+   "latE6": 51044909,
+   "lonE6": -114055575,
    "quality": "GOOD"
   },
   {
    "tS": 56,
-   "latE6": 53546705,
-   "lonE6": -113493800,
+   "latE6": 51044933,
+   "lonE6": -114055573,
    "quality": "GOOD"
   },
   {
    "tS": 58,
-   "latE6": 53546730,
-   "lonE6": -113493800,
+   "latE6": 51044958,
+   "lonE6": -114055571,
    "quality": "GOOD"
   },
   {
    "tS": 60,
-   "latE6": 53546755,
-   "lonE6": -113493800,
+   "latE6": 51044983,
+   "lonE6": -114055569,
    "quality": "GOOD"
   },
   {
    "tS": 62,
-   "latE6": 53546781,
-   "lonE6": -113493800,
+   "latE6": 51045008,
+   "lonE6": -114055568,
    "quality": "GOOD"
   },
   {
    "tS": 64,
-   "latE6": 53546806,
-   "lonE6": -113493800,
+   "latE6": 51045032,
+   "lonE6": -114055566,
    "quality": "GOOD"
   },
   {
    "tS": 66,
-   "latE6": 53546831,
-   "lonE6": -113493800,
+   "latE6": 51045057,
+   "lonE6": -114055564,
    "quality": "GOOD"
   },
   {
    "tS": 68,
-   "latE6": 53546856,
-   "lonE6": -113493800,
+   "latE6": 51045082,
+   "lonE6": -114055562,
    "quality": "GOOD"
   },
   {
    "tS": 70,
-   "latE6": 53546881,
-   "lonE6": -113493800,
+   "latE6": 51045107,
+   "lonE6": -114055561,
    "quality": "GOOD"
   },
   {
    "tS": 72,
-   "latE6": 53546900,
-   "lonE6": -113493789,
+   "latE6": 51045131,
+   "lonE6": -114055559,
    "quality": "GOOD"
   },
   {
    "tS": 74,
-   "latE6": 53546900,
-   "lonE6": -113493747,
+   "latE6": 51045156,
+   "lonE6": -114055557,
    "quality": "GOOD"
   },
   {
    "tS": 76,
-   "latE6": 53546900,
-   "lonE6": -113493704,
+   "latE6": 51045181,
+   "lonE6": -114055555,
    "quality": "GOOD"
   },
   {
    "tS": 78,
-   "latE6": 53546900,
-   "lonE6": -113493662,
+   "latE6": 51045206,
+   "lonE6": -114055553,
    "quality": "GOOD"
   },
   {
    "tS": 80,
-   "latE6": 53546900,
-   "lonE6": -113493620,
+   "latE6": 51045230,
+   "lonE6": -114055552,
    "quality": "GOOD"
   },
   {
    "tS": 82,
-   "latE6": 53546900,
-   "lonE6": -113493577,
+   "latE6": 51045255,
+   "lonE6": -114055551,
    "quality": "GOOD"
   },
   {
    "tS": 84,
-   "latE6": 53546900,
-   "lonE6": -113493535,
+   "latE6": 51045280,
+   "lonE6": -114055549,
    "quality": "GOOD"
   },
   {
    "tS": 86,
-   "latE6": 53546900,
-   "lonE6": -113493492,
+   "latE6": 51045305,
+   "lonE6": -114055548,
    "quality": "GOOD"
   },
   {
    "tS": 88,
-   "latE6": 53546900,
-   "lonE6": -113493450,
+   "latE6": 51045329,
+   "lonE6": -114055547,
    "quality": "GOOD"
   },
   {
    "tS": 90,
-   "latE6": 53546900,
-   "lonE6": -113493408,
+   "latE6": 51045354,
+   "lonE6": -114055545,
    "quality": "GOOD"
   },
   {
    "tS": 92,
-   "latE6": 53546900,
-   "lonE6": -113493365,
+   "latE6": 51045379,
+   "lonE6": -114055544,
    "quality": "GOOD"
   },
   {
    "tS": 94,
-   "latE6": 53546900,
-   "lonE6": -113493323,
+   "latE6": 51045404,
+   "lonE6": -114055543,
    "quality": "GOOD"
   },
   {
+   "tS": 95,
+   "latE6": 51045404,
+   "lonE6": -114055543,
+   "quality": "LAST_KNOWN",
+   "case": "stale-last-known"
+  },
+  {
    "tS": 96,
-   "latE6": 53546902,
-   "lonE6": -113493281,
+   "latE6": 51045428,
+   "lonE6": -114055541,
    "quality": "GOOD"
   },
   {
    "tS": 98,
-   "latE6": 53546908,
-   "lonE6": -113493239,
+   "latE6": 51045453,
+   "lonE6": -114055540,
    "quality": "GOOD"
   },
   {
    "tS": 100,
-   "latE6": 53546913,
-   "lonE6": -113493198,
+   "latE6": 51045455,
+   "lonE6": -114055500,
    "quality": "GOOD"
   },
   {
    "tS": 102,
-   "latE6": 53546918,
-   "lonE6": -113493156,
+   "latE6": 51045458,
+   "lonE6": -114055461,
    "quality": "GOOD"
   },
   {
    "tS": 104,
-   "latE6": 53546923,
-   "lonE6": -113493115,
+   "latE6": 51045460,
+   "lonE6": -114055422,
    "quality": "GOOD"
   },
   {
    "tS": 106,
-   "latE6": 53546928,
-   "lonE6": -113493074,
-   "quality": "GOOD"
+   "latE6": 51045475,
+   "lonE6": -114055442,
+   "quality": "USABLE"
   },
   {
    "tS": 108,
-   "latE6": 53546933,
-   "lonE6": -113493032,
+   "latE6": 51045460,
+   "lonE6": -114055422,
    "quality": "GOOD"
   },
   {
    "tS": 110,
-   "latE6": 53546939,
-   "lonE6": -113492991,
-   "quality": "GOOD"
+   "latE6": 51045470,
+   "lonE6": -114055407,
+   "quality": "USABLE"
   },
   {
    "tS": 112,
-   "latE6": 53546944,
-   "lonE6": -113492949,
-   "quality": "GOOD"
-  },
-  {
-   "tS": 114,
-   "latE6": 53546949,
-   "lonE6": -113492908,
-   "quality": "GOOD"
-  },
-  {
-   "tS": 116,
-   "latE6": 53546950,
-   "lonE6": -113492900,
-   "quality": "GOOD"
-  },
-  {
-   "tS": 118,
-   "latE6": 53546970,
-   "lonE6": -113492930,
-   "quality": "USABLE"
-  },
-  {
-   "tS": 120,
-   "latE6": 53546950,
-   "lonE6": -113492900,
-   "quality": "GOOD"
-  },
-  {
-   "tS": 122,
-   "latE6": 53546970,
-   "lonE6": -113492930,
-   "quality": "USABLE"
-  },
-  {
-   "tS": 124,
-   "latE6": 53546950,
-   "lonE6": -113492900,
+   "latE6": 51045460,
+   "lonE6": -114055422,
    "quality": "GOOD"
   }
  ]

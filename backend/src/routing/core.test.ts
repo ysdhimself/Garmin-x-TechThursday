@@ -1,10 +1,12 @@
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { findGrassRoute, fixtureProviderFromEnv, isFailure, RoutingError, validatePlan, type Candidate, type RoutingProvider } from "./index.ts";
 import { haversineM, routeLengthM } from "./geo.ts";
 import { simplifyToCap } from "./simplify.ts";
 
-const ORIGIN = [53546000, -113493800] as const;
+const ORIGIN = [51044277, -114055682] as const;
+const EDMONTON_ORIGIN = [53546000, -113493800] as const;
 
 test("fixture origin returns a valid bounded plan", async () => {
   const r = await findGrassRoute(ORIGIN[0], ORIGIN[1], 120);
@@ -85,14 +87,14 @@ test("simplifyToCap keeps endpoints and protected ring vertices", () => {
   assert.equal(simplifyToCap(ring, 1, { closed: true }).length, 3);
 });
 
-test("FIXTURE_FILE serves the simulator walk's route (demo/walk) as a valid fixture plan", async () => {
+test("FIXTURE_FILE serves the simulator walk routes (demo/walk, full and short) as valid fixture plans", async () => {
   const p = fixtureProviderFromEnv({ FIXTURE_FILE: "demo/walk/fixtures/route-edmonton.json" });
-  const r = await findGrassRoute(ORIGIN[0], ORIGIN[1], 120, p);
+  const r = await findGrassRoute(EDMONTON_ORIGIN[0], EDMONTON_ORIGIN[1], 120, p);
   assert.ok(!isFailure(r));
   assert.equal(r.source, "fixture");
   assert.deepEqual(validatePlan(r), []);
   assert.ok(r.attribution.includes("OpenStreetMap"));
-  const missing = await findGrassRoute(ORIGIN[0], ORIGIN[1], 120, fixtureProviderFromEnv({ FIXTURE_FILE: "nope.json" }));
+  const missing = await findGrassRoute(EDMONTON_ORIGIN[0], EDMONTON_ORIGIN[1], 120, fixtureProviderFromEnv({ FIXTURE_FILE: "nope.json" }));
   assert.ok(isFailure(missing) && missing.error.code === "PROVIDER_UNAVAILABLE");
 });
 

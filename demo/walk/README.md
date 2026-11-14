@@ -11,11 +11,13 @@ foot routing) from the plan's example origin in downtown Edmonton to the **ICE D
 
 | File | Length | What happens | Expected on the watch |
 | --- | --- | --- | --- |
+| **`quick-walk.fit`** (start here) | 50 s | Sit 5 s → walk 30 s (the last 42 m of the route) → stand 15 s; petting in standing seconds 3–12 | Walk, arrival, then the summary screen |
 | `touch-grass-full.fit` | 145 s | Sit 60 s → walk the route → stand 30 s at the entry; "petting" motion in standing seconds 10–19 | Invitation, walk, arrival, wave passes, stamp |
 | `arrive-no-wave.fit` | 145 s | Same walk, but no hand motion while standing | Arrival; the wave check asks to retry |
 | `walk-stops-short.fit` | 96 s | Sit 20 s → walk, then stop about 40 m (straight line) before the entry and stay | Never arrives (25 m radius) |
 | `walk-off-route.fit` | 192 s | Sit 20 s → walk; at the route's midpoint, walk out to a spot ~60 m from the route and back, then arrive | Off-route warning, then arrival |
 | `route-edmonton.json` | | The walk plan the tracks follow (`WalkPlan` contract) | Map shapes match the simulated GPS |
+| `route-edmonton-short.json` | | The same route trimmed to its last 42 m / 30 s (origin moved along the route; same entry and green space). Matches `quick-walk.fit` | |
 
 Every second has one FIT `Record` and one `AccelerometerData` message (25 samples, signed millig, the same fields as
 `demo/motion`). Record fields: position, speed, distance, heart rate, cadence, cumulative strides (`total_cycles`;
@@ -35,21 +37,28 @@ Monitor uses the compass if the simulator provides one, otherwise the direction 
 
 The simulator does not display activity data by itself; an app has to read and draw it. `demo/walk/` includes a
 small test app, **Walk Monitor**, that shows what the watch receives while a file plays. **UP/DOWN** switches
-between two pages:
+between three pages; **SUMMARY** opens by itself 3 s after arrival:
 
 ```
-Page 1: WALK                                  Page 2: SENSORS
-WALK  #57 PAS     ← updates + data channels    SENSORS
-GPS GOOD          ← NO FIX/POOR/USABLE/GOOD     95               ← heart rate (bpm)
-53.546231  -113.493941                          HR bpm   +27 vs sitting
-TO GREEN SPACE                                  STEPS 64   CAD 53
- ▲  23 m          ← arrow points to the park   KCAL 3   HEAD 312°
-1.4 m/s   walked 46 m                           ALT 669 m   935.4 hPa
-WALKING           ← STOPPED/OFF ROUTE/ARRIVED   TEMP 14 C
+WALK                                SENSORS                       SUMMARY
+WALK  #31 AS                        SENSORS                       WALK SUMMARY
+GPS POOR                            95 bpm                        30 sec
+53.546231  -113.493941              resting 68   peak 95          0:30 walk   42 m
+TO GREEN SPACE                      STEPS 52   CAD 53             HR 68 > 95 (+27)  avg 84
+ ▲  23 m     ← arrow to the park    KCAL 2   HEAD -- deg          STEPS 52   CAD 53
+1.4 m/s   walked 18 m               ALT 669 m   935.4 hPa         KCAL 2   ALT +1 m
+WALKING      ← STOPPED/OFF ROUTE/   TEMP 21 C                     TEMP 18 C (-4)
+               ARRIVED
 ```
 
-- **ARRIVED** needs 3 consecutive usable/good fixes inside the 25 m radius (the project's arrival rule), and stays on
-  once reached. **OFF ROUTE** shows when the position is more than 30 m from the route.
+- **SUMMARY** covers the walk from the first moment speed exceeds 0.3 m/s until arrival: time, distance, heart rate
+  (resting average before the walk → peak, the rise, and the walk average), steps, average cadence, calories,
+  altitude change and temperature change. It is frozen at arrival.
+- **ARRIVED** needs 3 consecutive fixes inside the 25 m radius, and stays on once reached. The project rule accepts
+  only usable/good fixes, but the simulator reports FIT playback as **POOR**, so Walk Monitor also accepts POOR and
+  shows `ARRIVED*` with a note. The Touch Grass app should keep the stricter rule on a real watch.
+- Location jumps over 50 m in one update (for example from the simulator's default location to the FIT file) are not
+  counted as walking. **OFF ROUTE** shows when the position is more than 30 m from the route.
 - The **arrow** points to the park relative to the way you face: compass heading if available, otherwise the
   direction of travel from GPS.
 - **HR change** = highest heart rate since the walk started minus the average while still before it.
@@ -57,7 +66,10 @@ WALKING           ← STOPPED/OFF ROUTE/ARRIVED   TEMP 14 C
   (0.7 m per step) and shown with `~`. **KCAL** counts from when the app started.
 - Any reading the simulator or watch doesn't provide shows `--`.
 - The letters after the update count show which channel delivered data: **E** position events, **P** polled
-  position, **A** activity info, **S** sensor info. They are there to find out how the simulator feeds FIT playback.
+  position, **A** activity info, **S** sensor info.
+- **Found in the Windows simulator (SDK 9.1.0, fēnix 7):** FIT playback arrives as **A** and **S** only, with GPS
+  quality POOR. `Position.enableLocationEvents` callbacks did not fire. Part 1: in the simulator, read
+  `Activity.getActivityInfo().currentLocation` (polled each second) as well as `Position` events.
 
 Press **START/SELECT** to reset the counters before playing the next file.
 
@@ -70,6 +82,7 @@ Expected per file:
 
 | File | What you should see |
 | --- | --- |
+| `quick-walk.fit` | STOPPED 5 s at ~42 m, WALKING for 30 s, ARRIVED*, then the SUMMARY page |
 | `touch-grass-full.fit` | STOPPED for 60 s at ~57 m, WALKING with the distance falling, then ARRIVED |
 | `arrive-no-wave.fit` | Same as full (the motion difference shows in the motion demo, not here) |
 | `walk-stops-short.fit` | Walks, then STOPPED at ~40 m; never ARRIVED |
