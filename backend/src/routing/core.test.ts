@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { findGrassRoute, fixtureProviderFromEnv, isFailure, RoutingError, validatePlan, type Candidate, type RoutingProvider } from "./index.ts";
 import { haversineM, routeLengthM } from "./geo.ts";
@@ -86,7 +87,7 @@ test("simplifyToCap keeps endpoints and protected ring vertices", () => {
   assert.equal(simplifyToCap(ring, 1, { closed: true }).length, 3);
 });
 
-test("FIXTURE_FILE serves the simulator walk's route (demo/walk) as a valid fixture plan", async () => {
+test("FIXTURE_FILE serves the simulator walk routes (demo/walk, full and short) as valid fixture plans", async () => {
   const p = fixtureProviderFromEnv({ FIXTURE_FILE: "demo/walk/fixtures/route-edmonton.json" });
   const r = await findGrassRoute(EDMONTON_ORIGIN[0], EDMONTON_ORIGIN[1], 120, p);
   assert.ok(!isFailure(r));

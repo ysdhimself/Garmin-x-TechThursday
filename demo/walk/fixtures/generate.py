@@ -117,10 +117,10 @@ def detour(path, off_m):
     return path
 
 
-def session(sit_s, moves, stand_s, pet_window=None):
-    """Second-by-second samples: (x, y, speed, phase, pet_second_or_None)."""
-    out = [(0.0, 0.0, 0.0, "sit", None) for _ in range(sit_s)]
-    prev = (0.0, 0.0)
+def session(sit_s, moves, stand_s, pet_window=None, start=(0.0, 0.0)):
+    """Second-by-second samples: (x, y, speed, phase, pet_second_or_None). Sits at `start`."""
+    out = [(start[0], start[1], 0.0, "sit", None) for _ in range(sit_s)]
+    prev = start
     for p in moves:
         out.append((p[0], p[1], hypot(p[0] - prev[0], p[1] - prev[1]), "walk", None))
         prev = p
@@ -232,7 +232,38 @@ def build(name, samples):
     print(path, f"({n} s)")
 
 
+def write_short_plan(walk_s):
+    """route-edmonton-short.json: the same real route, starting walk_s x 1.4 m before the entry.
+    Same entry point, green space and attribution; only the origin moves along the route."""
+    keep = walk_s * WALK_MPS
+    start_d = max(0.0, length(ROUTE) - keep)
+    start = point_at(ROUTE, start_d)
+    rest, d = [], 0.0
+    for a, b in zip(ROUTE, ROUTE[1:]):
+        d += hypot(b[0] - a[0], b[1] - a[1])
+        if d > start_d + 0.5:
+            rest.append(b)
+    pts = [start] + rest
+    to_e6 = lambda p: [round(v * 1e6) for v in to_latlon(*p)]
+    plan = dict(PLAN)
+    plan["origin"] = to_e6(start)
+    plan["route"] = {
+        "points": [to_e6(p) for p in pts[:-1]] + [PLAN["route"]["points"][-1]],  # end exactly on the entry
+        "distanceM": round(length(pts)),
+        "durationS": round(length(pts) / WALK_MPS),
+    }
+    path = HERE / "route-edmonton-short.json"
+    path.write_text(json.dumps(plan, indent=2) + "\n")
+    print(path)
+    return pts  # same local frame as ROUTE (metres from the full plan's origin)
+
+
 if __name__ == "__main__":
+    # Quick demo: sit 5 s -> ~30 s walk -> stand 15 s (petting in standing seconds 3-12). Uses
+    # route-edmonton-short.json, whose origin is ~42 m before the entry on the same real route.
+    short = write_short_plan(30)
+    build("quick-walk", session(5, walk(short), 15, pet_window=(3, 13), start=short[0]))
+
     build("touch-grass-full", session(60, walk(ROUTE), 30, pet_window=(10, 20)))
     build("arrive-no-wave", session(60, walk(ROUTE), 30))
     build("walk-stops-short", session(20, walk(ROUTE, stop_at=max(1.0, stop_point(ROUTE, 40))), 60))
