@@ -27,18 +27,45 @@ class touch_grassView extends WatchUi.View {
     }
 
     function onUpdate(dc as Dc) as Void {
-        var state = getApp().flowState;
+        var app = getApp();
+        var state = app.flowState;
         var x = dc.getWidth() / 2;
         var y = dc.getHeight() / 2;
         var center = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
+        var detail = DETAILS[state];
+        var hint = "START: next";
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
+
+        if (state == TOUCH_GRASS) {
+            var progress = app.touchProgress();
+            if (progress == null) {
+                hint = "START: touch grass";
+            } else {
+                // Progress ring around the screen edge, clockwise from the top.
+                dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+                dc.setPenWidth(8);
+                if (progress >= 1.0) {
+                    dc.drawCircle(x, y, x - 4);
+                    detail = "All done!";
+                } else {
+                    if (progress > 0.0) {
+                        dc.drawArc(x, y, x - 4, Graphics.ARC_CLOCKWISE, 90, 90 - 360 * progress);
+                    }
+                    detail = "Touching grass...";
+                    hint = "";
+                }
+                dc.setPenWidth(1);
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            }
+        }
+
         dc.drawText(x, y - 55, Graphics.FONT_XTINY, (state + 1) + "/" + TITLES.size(), center);
         dc.drawText(x, y - 10, Graphics.FONT_SMALL, TITLES[state], center);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(x, y + 25, Graphics.FONT_XTINY, DETAILS[state], center);
-        dc.drawText(x, y + 75, Graphics.FONT_XTINY, "START: next", center);
+        dc.drawText(x, y + 25, Graphics.FONT_XTINY, detail, center);
+        dc.drawText(x, y + 75, Graphics.FONT_XTINY, hint, center);
     }
 
 }

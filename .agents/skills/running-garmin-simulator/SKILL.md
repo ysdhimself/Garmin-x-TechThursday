@@ -78,7 +78,7 @@ import -window WINDOW_ID .amp/in/artifacts/simulator-running.png
 
 Replace `WINDOW_ID` with the ID from the current window list. Inspect the capture with `view_media`, stating the screen expected from the current app source. Use an available desktop screenshot tool if ImageMagick `import` is unavailable. A screenshot saved without inspection is not verification.
 
-The app opens on a placeholder flow screen showing `1/6` and `Passive`; START advances through the six flow states and wraps back to `Passive`. The planned map, route, and gesture flow is not implemented yet. If the code changes, verify its actual expected screen instead.
+The app opens on a placeholder flow screen showing `1/6` and `Passive`; START advances through the six flow states and wraps back to `Passive`. On `You proved it`, START first runs a 2.5-second fake touch challenge (the accelerometer is not used yet); press START again once it shows `All done!`. The planned map, route, and gesture flow is not implemented yet. If the code changes, verify its actual expected screen instead.
 
 Report the build result, observed screen, and any remaining blocker. Include the inspected screenshot in the handoff and leave the simulator running for the user.
 
