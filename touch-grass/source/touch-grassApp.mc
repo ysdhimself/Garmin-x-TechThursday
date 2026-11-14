@@ -19,6 +19,9 @@ enum FlowState {
 class touch_grassApp extends Application.AppBase {
 
     var flowState as FlowState = PASSIVE;
+    var photoSession as PhotoSession;
+    private var _visible as Boolean = false;
+    private var _active as Boolean = true;
 
     private const FAKE_TOUCH_MS = 2500;
     // How long "GRASS TOUCHED" shows before the flow advances on its own.
@@ -35,6 +38,7 @@ class touch_grassApp extends Application.AppBase {
 
     function initialize() {
         AppBase.initialize();
+        photoSession = new PhotoSession();
     }
 
     // onStart() is called on application start up
@@ -43,6 +47,50 @@ class touch_grassApp extends Application.AppBase {
 
     // onStop() is called when your application is exiting
     function onStop(state as Dictionary?) as Void {
+        _active = false;
+        photoSession.stop();
+        stopRedraws();
+    }
+
+    function onInactive(state as Dictionary?) as Void {
+        _active = false;
+        photoSession.stop();
+    }
+
+    function onActive(state as Dictionary?) as Void {
+        _active = true;
+        resumePhoto();
+    }
+
+    function viewShown() as Void {
+        _visible = true;
+        resumePhoto();
+    }
+
+    function viewHidden() as Void {
+        _visible = false;
+        photoSession.stop();
+    }
+
+    private function resumePhoto() as Void {
+        if (_active && _visible && flowState == PROVE_IT) {
+            photoSession.start();
+        }
+    }
+
+    function cancelPhoto() as Boolean {
+        if (flowState != PROVE_IT) { return false; }
+        photoSession.stop();
+        flowState = MAP;
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    function photoPassed() as Void {
+        if (!_active || !_visible || flowState != PROVE_IT) { return; }
+        flowState = TOUCH_GRASS;
+        startRedraws(100);
+        WatchUi.requestUpdate();
     }
 
     // Return the initial view of your application here
@@ -55,6 +103,10 @@ class touch_grassApp extends Application.AppBase {
     // In TOUCH_GRASS, the first press starts the fake touch challenge and
     // presses are ignored until it finishes.
     function advanceFlow() as Void {
+        if (flowState == PROVE_IT) {
+            if (_active && _visible) { photoSession.retry(); }
+            return;
+        }
         if (flowState == TOUCH_GRASS) {
             var progress = touchProgress();
             if (progress == null) {
@@ -94,6 +146,7 @@ class touch_grassApp extends Application.AppBase {
         } else {
             stopRedraws();
         }
+        if (flowState == PROVE_IT) { resumePhoto(); }
         WatchUi.requestUpdate();
     }
 

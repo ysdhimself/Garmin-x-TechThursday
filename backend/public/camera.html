@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fafaf8">
+  <meta name="referrer" content="no-referrer">
+  <title>Touch grass</title>
+  <link rel="stylesheet" href="/camera.css">
+  <script src="/camera.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Touch grass</h1>
+    <section class="viewfinder" aria-label="Camera preview">
+      <video autoplay muted playsinline aria-label="Live rear camera preview"></video>
+      <div class="camera-placeholder" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 12l3-4h8l3 4h7a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V16a4 4 0 0 1 4-4z"/><circle cx="24" cy="25" r="8"/></svg></div>
+      <div class="passed-overlay" aria-hidden="true" hidden>✓</div>
+    </section>
+    <section class="result" aria-live="polite" aria-atomic="true">
+      <h2 id="status">Connecting…</h2>
+      <p id="detail" hidden></p>
+    </section>
+    <button id="start" disabled>Open camera</button>
+    <button id="pause" class="secondary" hidden>Pause</button>
+    <p class="privacy">Photos sent for AI checking. Not saved by this app.</p>
+  </main>
+</body>
+</html>

@@ -13,4 +13,8 @@ class touch_grassDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
+    function onBack() as Boolean {
+        return getApp().cancelPhoto();
+    }
+
 }

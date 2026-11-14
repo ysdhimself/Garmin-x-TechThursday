@@ -8,6 +8,7 @@ import { createServer, type ServerResponse } from "node:http";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { findGrassRoute, fixtureProviderFromEnv, isFailure, liveProviderFromEnv, RoutingError, type RoutingProvider } from "../src/routing/index.ts";
+import { createPhotoHandler } from "../src/photo/photo-verification.ts";
 
 const envFile = fileURLToPath(new URL("../.env", import.meta.url));
 if (existsSync(envFile)) process.loadEnvFile(envFile);
@@ -15,6 +16,12 @@ if (existsSync(envFile)) process.loadEnvFile(envFile);
 const mode = process.env.ROUTING_MODE === "live" ? "live" : "fixture";
 const port = Number(process.env.PORT ?? 8787);
 const STATUS = { INVALID_REQUEST: 400, NO_ROUTE: 404, PROVIDER_UNAVAILABLE: 503 } as const;
+const handlePhoto = createPhotoHandler({
+  publicBaseUrl: process.env.PUBLIC_BASE_URL ?? `http://127.0.0.1:${port}`,
+  jevUrl: process.env.JEV_API_URL ?? "https://api.typesafe.ai/v1/systemone",
+  apiKey: process.env.JEV_API_KEY,
+  model: process.env.JEV_MODEL,
+});
 
 let provider: RoutingProvider | RoutingError;
 try {
@@ -29,7 +36,15 @@ function send(res: ServerResponse, status: number, body: unknown) {
   res.end(json);
 }
 
-createServer((req, res) => {
+const server = createServer(async (req, res) => {
+  // Photo paths contain bearer session tokens: do not put them in request logs.
+  try {
+    if (await handlePhoto(req, res)) return;
+  } catch {
+    if (!res.headersSent) send(res, 500, { error: { code: "INTERNAL_ERROR", message: "Photo service unavailable." } });
+    else res.end();
+    return;
+  }
   const started = Date.now();
   const log = (status: number) => console.log(`${req.method} ${req.url} -> ${status} (${Date.now() - started} ms)`); // never logs coordinates
 
@@ -65,5 +80,7 @@ createServer((req, res) => {
     send(res, status, r);
   });
 }).listen(port, () => {
-  console.log(`Part 2 dev server on http://localhost:${port}  mode=${mode}${provider instanceof RoutingError ? `  (not ready: ${provider.message})` : ""}`);
+  console.log(`Touch Grass dev server on port ${port}  mode=${mode}${provider instanceof RoutingError ? `  (not ready: ${provider.message})` : ""}`);
 });
+server.requestTimeout = 20_000;
+server.headersTimeout = 10_000;
