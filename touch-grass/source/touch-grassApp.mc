@@ -1,6 +1,7 @@
 import Toybox.Application;
 import Toybox.Attention;
 import Toybox.Lang;
+import Toybox.Position;
 import Toybox.System;
 import Toybox.Timer;
 import Toybox.WatchUi;
@@ -25,6 +26,7 @@ class touch_grassApp extends Application.AppBase {
     // How long "All done" shows before returning to the title screen.
     private const DONE_HOLD_MS = 2000;
     private var _doneAt as Number = 0;
+    private var _mapPushed as Boolean = false;
     private var _touchStartedAt as Number? = null;
     private var _redrawTimer as Timer.Timer? = null;
     // Two clock ring cycles, so every other shaking burst buzzes.
@@ -64,8 +66,27 @@ class touch_grassApp extends Application.AppBase {
             }
             _touchStartedAt = null;
         }
+        if (flowState == MAP) {
+            // Leaving the map: turn GPS off and close the built-in map view.
+            Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
+            if (_mapPushed) {
+                _mapPushed = false;
+                WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+            }
+        }
         flowState = (flowState == DONE ? PASSIVE : flowState + 1) as FlowState;
+        if (flowState == MAP) {
+            Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+            // The watch's own map when it has one; otherwise MapScene is
+            // drawn by the main view.
+            if (WatchUi has :MapTrackView) {
+                _mapPushed = true;
+                WatchUi.pushView(new touch_grassMapView(), new touch_grassDelegate(), WatchUi.SLIDE_IMMEDIATE);
+            }
+        }
         if (flowState == GRASS_TIME) {
+            // Start GPS a step early so a fix is ready when the map opens.
+            Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
             startAlarm();
         } else if (flowState == DONE) {
             _doneAt = System.getTimer();
@@ -130,6 +151,11 @@ class touch_grassApp extends Application.AppBase {
             timer.stop();
             _redrawTimer = null;
         }
+    }
+
+    // GPS fixes are read with Position.getInfo() when the map draws.
+    function onPosition(info as Position.Info) as Void {
+        WatchUi.requestUpdate();
     }
 
     function onRedraw() as Void {

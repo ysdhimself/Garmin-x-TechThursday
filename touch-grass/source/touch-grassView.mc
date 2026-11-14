@@ -37,6 +37,10 @@ class touch_grassView extends WatchUi.View {
             PixelScene.drawGrassTime(dc);
             return;
         }
+        if (state == MAP) {
+            MapScene.draw(dc);
+            return;
+        }
         if (state == TOUCH_GRASS) {
             PixelScene.drawTouchGrass(dc, app.touchProgress());
             return;

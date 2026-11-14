@@ -39,6 +39,15 @@ module PixelScene {
         _dc = null;
     }
 
+    // Shown over the map while it loads.
+    function drawMapLoading(dc as Dc) as Void {
+        meadow(dc);
+        sun();
+        title(dc, "FINDING", CLOUD, NAVY, "YOU", BLADE, SOIL);
+        PixelFont.draw(dc, "LOADING MAP...", dc.getWidth() / 2, _top + 42 * _cell, _cell / 2, CLOUD, SOIL);
+        _dc = null;
+    }
+
     // Touch grass challenge. progress is null before START, then 0.0 to
     // 1.0; the hand waves and a segmented bar fills while it runs.
     function drawTouchGrass(dc as Dc, progress as Float?) as Void {
