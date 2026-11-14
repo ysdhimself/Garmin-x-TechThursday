@@ -39,6 +39,85 @@ module PixelScene {
         _dc = null;
     }
 
+    // Length of the demo walk, in seconds (route-edmonton-short.json at 1.4 m/s).
+    const WALK_SECONDS = 30;
+
+    // WALK step: distance to the grass, live from WalkData, with a 30 s progress bar. On arrival it
+    // holds on "YOU MADE IT!" until START.
+    function drawWalk(dc as Dc) as Void {
+        meadow(dc);
+        sun();
+        var x = dc.getWidth() / 2;
+        var small = _cell / 2;
+        var dist = WalkData.distanceToGrass();
+        var big = dist == null ? "--" : dist.format("%d") + " M";
+        if (WalkData.arrived()) {
+            title(dc, "YOU MADE", CLOUD, NAVY, "IT!", BLADE, SOIL);
+            PixelFont.draw(dc, big, x, _top + 32 * _cell, _cell * 3 / 4, SUN, SUN_EDGE);
+            footer(dc, "ARRIVED", "START: NEXT");
+            _dc = null;
+            return;
+        }
+        title(dc, "WALK TO", CLOUD, NAVY, "GRASS", BLADE, SOIL);
+        PixelFont.draw(dc, big, x, _top + 32 * _cell, _cell * 3 / 4, SUN, SUN_EDGE);
+        if (!WalkData.hasData()) {
+            PixelFont.draw(dc, "WAITING FOR DATA", x, _top + 42 * _cell, small, CLOUD, SOIL);
+            _dc = null;
+            return;
+        }
+        var spd = WalkData.speed();
+        var hr = WalkData.heartRate();
+        var line = (spd == null ? "--" : spd.format("%.1f")) + " M/S  HR " + (hr == null ? "--" : hr.format("%d"));
+        PixelFont.draw(dc, line, x, _top + 42 * _cell, small, CLOUD, SOIL);
+
+        // Same segmented bar as the touch challenge, filling over the 30 s walk.
+        var segments = 8;
+        var walked = WalkData.walkedS();
+        var filled = walked >= WALK_SECONDS ? segments : walked * segments / WALK_SECONDS;
+        cell(13, 48, 35, 5, SOIL);
+        for (var i = 0; i < segments; i += 1) {
+            cell(15 + i * 4, 49, 3, 3, i < filled ? BLADE : GRASS);
+        }
+        PixelFont.draw(dc, WalkData.steps() + " STEPS  " + (WalkData.isDemo() ? "DEMO" : "LIVE"),
+            x, _top + 55 * _cell, small, SUN, SOIL);
+        _dc = null;
+    }
+
+    // SUMMARY step: the walk's stats only, on a dark panel over the meadow.
+    function drawSummary(dc as Dc) as Void {
+        meadow(dc);
+        var s = WalkData.summary();
+        var lines = [] as Array<String>;
+        if (s != null) {
+            var t = s["timeS"];
+            if (t != null) { lines.add("TIME " + (t / 60).format("%d") + ":" + (t % 60).format("%02d")); }
+            lines.add("DIST " + s["distM"].format("%d") + " M");
+            if (s["rest"] != null && s["peak"] != null) {
+                lines.add("HR " + s["rest"].format("%d") + " TO " + s["peak"].format("%d"));
+            }
+            if (s["avg"] != null) { lines.add("AVG HR " + s["avg"].format("%d")); }
+            if (s["steps"] != null) { lines.add("STEPS " + s["steps"].format("%d")); }
+            if (s["cadence"] != null) { lines.add("CADENCE " + s["cadence"].format("%d")); }
+            if (s["kcal"] != null) { lines.add("KCAL " + s["kcal"].format("%d")); }
+            var alt = s["alt"];
+            if (alt != null) {
+                lines.add(alt > 0 ? "UP " + alt.format("%d") + " M" : (alt < 0 ? "DOWN " + (-alt).format("%d") + " M" : "FLAT"));
+            }
+        } else {
+            lines.add("NO WALK DATA");
+        }
+        var scale = _cell / 2;
+        var lineH = 9 * scale;
+        var x = dc.getWidth() / 2;
+        var y = (dc.getHeight() - lines.size() * lineH) / 2;
+        dc.setColor(SOIL, SOIL);
+        dc.fillRoundedRectangle(x - 18 * _cell, y - 2 * _cell, 36 * _cell, lines.size() * lineH + 3 * _cell, 3 * _cell);
+        for (var i = 0; i < lines.size(); i += 1) {
+            PixelFont.draw(dc, lines[i], x, y + i * lineH, scale, i == 0 ? SUN : CLOUD, null);
+        }
+        _dc = null;
+    }
+
     // Shown over the map while it loads.
     function drawMapLoading(dc as Dc) as Void {
         meadow(dc);

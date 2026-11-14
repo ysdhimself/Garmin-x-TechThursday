@@ -9,17 +9,21 @@ class touch_grassView extends WatchUi.View {
         "Passive",
         "Touch grass time!",
         "Get to the grass",
+        "Walk to the grass",
         "You arrived",
         "You proved it",
-        "All done"
+        "All done",
+        "Walk summary"
     ];
     private const DETAILS = [
         "Waiting for grass time",
         "Time to go outside",
         "Map goes here",
+        "Walking",
         "Prove it",
         "Touch the grass",
-        "Back to passive next"
+        "Back to passive next",
+        "Stats"
     ];
 
     function initialize() {
@@ -39,6 +43,14 @@ class touch_grassView extends WatchUi.View {
         }
         if (state == MAP) {
             MapScene.draw(dc);
+            return;
+        }
+        if (state == WALK) {
+            PixelScene.drawWalk(dc);
+            return;
+        }
+        if (state == SUMMARY) {
+            PixelScene.drawSummary(dc);
             return;
         }
         if (state == TOUCH_GRASS) {

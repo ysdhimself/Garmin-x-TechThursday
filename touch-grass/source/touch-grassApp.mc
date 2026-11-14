@@ -6,14 +6,16 @@ import Toybox.System;
 import Toybox.Timer;
 import Toybox.WatchUi;
 
-// The Touch Grass flow, in order. DONE returns to PASSIVE.
+// The Touch Grass flow, in order. SUMMARY returns to PASSIVE.
 enum FlowState {
     PASSIVE,
     GRASS_TIME,
     MAP,
+    WALK,
     PROVE_IT,
     TOUCH_GRASS,
-    DONE
+    DONE,
+    SUMMARY
 }
 
 class touch_grassApp extends Application.AppBase {
@@ -26,6 +28,9 @@ class touch_grassApp extends Application.AppBase {
     // How long "All done" shows before returning to the title screen.
     private const DONE_HOLD_MS = 2000;
     private var _doneAt as Number = 0;
+    // How long the walk SUMMARY shows before returning to the title screen.
+    private const SUMMARY_HOLD_MS = 5000;
+    private var _summaryAt as Number = 0;
     private var _mapPushed as Boolean = false;
     private var _touchStartedAt as Number? = null;
     private var _redrawTimer as Timer.Timer? = null;
@@ -74,7 +79,12 @@ class touch_grassApp extends Application.AppBase {
                 WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
             }
         }
-        flowState = (flowState == DONE ? PASSIVE : flowState + 1) as FlowState;
+        if (flowState == WALK) {
+            // Leaving the walk (arrived, or START to skip): keep the stats, GPS off.
+            WalkData.finish();
+            Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
+        }
+        flowState = (flowState == SUMMARY ? PASSIVE : flowState + 1) as FlowState;
         if (flowState == MAP) {
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
             // The watch's own map when it has one; otherwise MapScene is
@@ -88,8 +98,16 @@ class touch_grassApp extends Application.AppBase {
             // Start GPS a step early so a fix is ready when the map opens.
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
             startAlarm();
+        } else if (flowState == WALK) {
+            // Live data (simulator Activity Data playback / GPS), or the built-in demo walk after 3 s.
+            Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+            WalkData.start();
+            startRedraws(1000);
         } else if (flowState == DONE) {
             _doneAt = System.getTimer();
+            startRedraws(250);
+        } else if (flowState == SUMMARY) {
+            _summaryAt = System.getTimer();
             startRedraws(250);
         } else {
             stopRedraws();
@@ -169,6 +187,18 @@ class touch_grassApp extends Application.AppBase {
         }
         // "All done" shows briefly, then the flow returns to the title screen.
         if (flowState == DONE && System.getTimer() - _doneAt >= DONE_HOLD_MS) {
+            advanceFlow();
+            return;
+        }
+        // The walk updates once a second until arrival, then holds on ARRIVED until START.
+        if (flowState == WALK && !WalkData.arrived()) {
+            WalkData.tick();
+            if (WalkData.arrived()) {
+                stopRedraws();
+            }
+        }
+        // The summary shows for SUMMARY_HOLD_MS, then back to the title screen.
+        if (flowState == SUMMARY && System.getTimer() - _summaryAt >= SUMMARY_HOLD_MS) {
             advanceFlow();
             return;
         }
