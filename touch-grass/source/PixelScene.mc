@@ -18,6 +18,7 @@ module PixelScene {
     const SOIL = 0x005500;
     const NAVY = 0x0055AA;
     const RED = 0xFF5555;
+    const SKIN = 0xFFAA55;
 
     var _dc as Dc?;
     var _cell as Number = 4;
@@ -27,15 +28,42 @@ module PixelScene {
     // Passive landing screen: a sunny meadow.
     function drawPassive(dc as Dc) as Void {
         meadow(dc);
-        cell(40, 4, 5, 1, SUN_EDGE);
-        cell(39, 5, 7, 1, SUN);
-        cell(38, 6, 9, 5, SUN);
-        cell(39, 11, 7, 1, SUN);
-        cell(40, 12, 5, 1, SUN_EDGE);
-        cell(38, 9, 1, 2, SUN_EDGE);
-        cell(46, 9, 1, 2, SUN_EDGE);
+        sun();
         title(dc, "TOUCH", CLOUD, NAVY, "GRASS", BLADE, SOIL);
         footer(dc, "NO GRASS NEEDED", "START: DEMO");
+        _dc = null;
+    }
+
+    // Touch grass challenge. progress is null before START, then 0.0 to
+    // 1.0; the hand waves and a segmented bar fills while it runs.
+    function drawTouchGrass(dc as Dc, progress as Float?) as Void {
+        meadow(dc);
+        if (progress != null && progress >= 1.0) {
+            sun();
+            title(dc, "GRASS", BLADE, SOIL, "TOUCHED", CLOUD, NAVY);
+            footer(dc, "HUMANITY RENEWED", "START: NEXT");
+            _dc = null;
+            return;
+        }
+
+        title(dc, "PET THE", CLOUD, NAVY, "GRASS", BLADE, SOIL);
+        if (progress == null) {
+            hand(0);
+            footer(dc, "WAVE YOUR HAND", "START: BEGIN");
+            _dc = null;
+            return;
+        }
+
+        // Wave: shift the hand a cell left or right each tenth of the challenge.
+        hand((progress * 10).toNumber() % 2 == 0 ? -1 : 1);
+        var x = dc.getWidth() / 2;
+        PixelFont.draw(dc, "TOUCHING...", x, _top + 42 * _cell, _cell / 2, CLOUD, SOIL);
+        var segments = 8;
+        var filled = (progress * segments).toNumber();
+        cell(13, 48, 35, 5, SOIL);
+        for (var i = 0; i < segments; i += 1) {
+            cell(15 + i * 4, 49, 3, 3, i < filled ? BLADE : GRASS);
+        }
         _dc = null;
     }
 
@@ -62,6 +90,34 @@ module PixelScene {
         title(dc, "GRASS", BLADE, SOIL, "TIME!", SUN, SUN_EDGE);
         footer(dc, "PERMIT EXPIRING", "START: GO");
         _dc = null;
+    }
+
+    // The sun, top right of the sky.
+    function sun() as Void {
+        cell(40, 4, 5, 1, SUN_EDGE);
+        cell(39, 5, 7, 1, SUN);
+        cell(38, 6, 9, 5, SUN);
+        cell(39, 11, 7, 1, SUN);
+        cell(40, 12, 5, 1, SUN_EDGE);
+        cell(38, 9, 1, 2, SUN_EDGE);
+        cell(46, 9, 1, 2, SUN_EDGE);
+    }
+
+    // A raised open hand in the sky, shifted dx cells sideways, with
+    // motion lines on each side.
+    function hand(dx as Number) as Void {
+        var x = 36 + dx;
+        cell(x + 1, 3, 1, 3, SKIN);
+        cell(x + 3, 3, 1, 3, SKIN);
+        cell(x + 5, 3, 1, 3, SKIN);
+        cell(x + 7, 4, 1, 2, SKIN);
+        cell(x + 1, 6, 7, 1, SKIN);
+        cell(x, 7, 8, 1, SKIN);
+        cell(x + 1, 8, 7, 2, SKIN);
+        cell(x + 2, 10, 5, 1, SKIN);
+        cell(x + 2, 11, 5, 2, NAVY);
+        cell(x - 2, 5, 1, 2, CLOUD);
+        cell(x + 9, 6, 1, 2, CLOUD);
     }
 
     // Sky, clouds, hills, and the grassy meadow shared by every screen.
