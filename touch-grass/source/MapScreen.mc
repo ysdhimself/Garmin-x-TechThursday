@@ -14,13 +14,14 @@ import Toybox.WatchUi;
 class touch_grassMapView extends WatchUi.MapView {
 
     // Half the visible width and height, in metres.
-    private const ZOOM_HALF_SPAN_M = 80.0;
+    private const ZOOM_HALF_SPAN_M = 150.0;
     private const METRES_PER_DEG_LAT = 111320.0;
     // Re-centre only after moving this far, so the map doesn't jitter.
     private const RECENTRE_M = 15.0;
     private const FALLBACK_LAT = 51.04437;
     private const FALLBACK_LON = -114.05563;
     private const YOU = 0x0055FF;
+    private const ROUTE_COLOR = 0x5555FF;
 
     // The centre of the map box, and the latest fix (the dot moves with the
     // fix even between re-centres).
@@ -29,6 +30,7 @@ class touch_grassMapView extends WatchUi.MapView {
     private var _fixLat as Float = FALLBACK_LAT;
     private var _fixLon as Float = FALLBACK_LON;
     private var _hasFix as Boolean = false;
+    private var _routeSet as Boolean = false;
 
     // The map draws (and loads) underneath a pixel-art loading screen for
     // this long, so you never see it filling in. Tune to taste.
@@ -41,8 +43,32 @@ class touch_grassMapView extends WatchUi.MapView {
         MapView.setMapMode(WatchUi.MAP_MODE_PREVIEW);
         var settings = System.getDeviceSettings();
         MapView.setScreenVisibleArea(0, 0, settings.screenWidth, settings.screenHeight);
+        loadRoute();
         readPosition();
         showArea();
+    }
+
+    private function loadRoute() as Void {
+        if (_routeSet) { return; }
+        var plan = getApp().walkPlanRequest.plan;
+        if (plan == null) {
+            plan = WatchUi.loadResource(Rez.JsonData.walkRoute) as Dictionary;
+        }
+        if (plan == null || !(plan.hasKey("route"))) { return; }
+        var route = plan["route"] as Dictionary;
+        var points = route["points"] as Array<Array<Number> >;
+        if (points.size() < 2) { return; }
+        var polyline = new WatchUi.MapPolyline();
+        polyline.setColor(Graphics.COLOR_BLUE);
+        polyline.setWidth(3);
+        for (var i = 0; i < points.size(); i += 1) {
+            var p = points[i];
+            polyline.addLocation(new Position.Location(
+                {:latitude => p[0] / 1000000.0, :longitude => p[1] / 1000000.0, :format => :degrees}
+            ));
+        }
+        MapView.setPolyline(polyline);
+        _routeSet = true;
     }
 
     function onShow() as Void {
@@ -77,6 +103,7 @@ class touch_grassMapView extends WatchUi.MapView {
 
     function onUpdate(dc as Dc) as Void {
         readPosition();
+        loadRoute();
         MapView.onUpdate(dc);
         if (covered()) {
             PixelScene.drawMapLoading(dc);

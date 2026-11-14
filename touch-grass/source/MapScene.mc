@@ -5,9 +5,7 @@ import Toybox.Position;
 
 // The MAP step: a simplified, north-up map in a light Apple Maps style,
 // drawn with plain shapes so it appears instantly and needs no map tiles
-// or network. It shows a sample park (from fixtures/routes/demo-park.json,
-// synthetic data, not a real place) with a few streets, a pond, and contour
-// lines for topography, plus a blue dot for your location.
+// or network. Calgary: Platform Calgary to Central Library Garden.
 // Points are [latitude, longitude] in microdegrees, as in the fixture.
 // Colours stay inside the fēnix 7's 64-colour palette.
 module MapScene {
@@ -20,39 +18,50 @@ module MapScene {
     const ROAD = 0xFFFFFF;
     const ROAD_EDGE = 0xAAAAAA;
     const YOU = 0x0055FF;
+    const ROUTE_COLOR = 0x5555FF;
     const INK = 0x555555;
 
-    // Where "you" are on the demo map when there is no GPS fix on it.
-    const DEMO_YOU = [53546000, -113493800] as Array<Number>;
-    // The park, from the fixture.
+    // Platform Calgary: where "you" start when there is no GPS fix.
+    const DEMO_YOU = [51044277, -114055682] as Array<Number>;
+    // Central Library Garden, from demo-park.json.
     const PARK_RING = [
-        [53546950, -113492900],
-        [53547300, -113492950],
-        [53547800, -113492700],
-        [53547800, -113491400],
-        [53547100, -113491300],
-        [53546950, -113491900]
+        [51045460, -114055422],
+        [51045400, -114054800],
+        [51045900, -114054600],
+        [51046100, -114054900],
+        [51046100, -114055300],
+        [51045700, -114055600]
     ] as Array<Array<Number> >;
     const POND = [
-        [53547300, -113492300],
-        [53547450, -113492400],
-        [53547550, -113492000],
-        [53547400, -113491800]
+        [51045750, -114054900],
+        [51045850, -114055050],
+        [51045900, -114054750],
+        [51045800, -114054650]
+    ] as Array<Array<Number> >;
+    // Route: Platform Calgary northbound to the library entrance.
+    const ROUTE = [
+        [51044277, -114055682],
+        [51044298, -114055620],
+        [51044312, -114055584],
+        [51044452, -114055591],
+        [51044503, -114055604],
+        [51045212, -114055553],
+        [51045453, -114055540],
+        [51045460, -114055422]
     ] as Array<Array<Number> >;
     // Decorative streets: lat1, lon1, lat2, lon2, major (1) or minor (0).
     const STREETS = [
-        [53545500, -113497500, 53545500, -113488000, 1],
-        [53548300, -113497500, 53548300, -113488000, 1],
-        [53545000, -113494600, 53549000, -113494600, 0],
-        [53545000, -113490700, 53549000, -113490700, 0],
-        [53546000, -113497500, 53546000, -113493800, 0]
+        [51044200, -114057000, 51044200, -114053500, 1],
+        [51046300, -114057000, 51046300, -114053500, 1],
+        [51045000, -114057000, 51045000, -114053500, 0],
+        [51043500, -114055600, 51046800, -114055600, 0],
+        [51043500, -114054500, 51046800, -114054500, 0]
     ] as Array<Array<Number> >;
 
-    // The map is centred on this point, and scaled to fit the route and park.
-    const CENTER_LAT = 53546900;
-    const CENTER_LON = -113492550;
-    const FIT_LAT_SPAN = 1800;   // microdegrees of latitude to keep on screen
-    const CARD_NOTE = "Demo map - sample data";
+    const CENTER_LAT = 51045100;
+    const CENTER_LON = -114055100;
+    const FIT_LAT_SPAN = 2400;
+    const CARD_NOTE = "Platform Calgary to Library";
 
     var _s as Float = 1.0;        // screen scale relative to a 260 px display
     var _cx as Number = 0;
@@ -86,10 +95,11 @@ module MapScene {
         dc.fillPolygon(screen(POND));
 
         streets(dc);
+        route(dc);
 
-        var label = project(CENTER_LAT + 400, -113492100);
+        var label = project(51045750, -114055000);
         dc.setColor(PARK_EDGE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(label[0], label[1], Graphics.FONT_XTINY, "Demo Park",
+        dc.drawText(label[0], label[1], Graphics.FONT_XTINY, "Library Garden",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         you(dc, project(youPoint()[0], youPoint()[1]));
@@ -107,10 +117,20 @@ module MapScene {
             var pts = [] as Array<[Number, Number]>;
             for (var i = 0; i < 24; i += 1) {
                 var a = i * Math.PI / 12;
-                pts.add(project(53546100 + (dLat * Math.sin(a)).toNumber(),
-                    -113491500 + (dLon * Math.cos(a)).toNumber()));
+                pts.add(project(51045800 + (dLat * Math.sin(a)).toNumber(),
+                    -114054800 + (dLon * Math.cos(a)).toNumber()));
             }
             outline(dc, pts);
+        }
+    }
+
+    // The walking route as a dashed blue line from origin to destination.
+    function route(dc as Dc) as Void {
+        dc.setColor(ROUTE_COLOR, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth((3.0 * _s).toNumber());
+        var pts = screen(ROUTE);
+        for (var i = 0; i + 1 < pts.size(); i += 1) {
+            dc.drawLine(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
         }
     }
 

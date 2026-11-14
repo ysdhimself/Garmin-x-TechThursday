@@ -1,4 +1,4 @@
 <resources>
-    <!-- The 30 s demo walk (same route the simulator file demo/walk/fixtures/quick-walk.fit follows). -->
-    <jsonData id="walkRoute" filename="../../../demo/walk/fixtures/route-edmonton-short.json"/>
+    <!-- Calgary: Platform Calgary to Central Library Garden (fallback when backend is unavailable). -->
+    <jsonData id="walkRoute" filename="../../../backend/fixtures/routes/demo-park.json"/>
 </resources>

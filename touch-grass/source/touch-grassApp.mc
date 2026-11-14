@@ -22,6 +22,7 @@ class touch_grassApp extends Application.AppBase {
 
     var flowState as FlowState = PASSIVE;
     var photoSession as PhotoSession;
+    var walkPlanRequest as WalkPlanRequest;
     private var _visible as Boolean = false;
     private var _active as Boolean = true;
 
@@ -44,6 +45,7 @@ class touch_grassApp extends Application.AppBase {
     function initialize() {
         AppBase.initialize();
         photoSession = new PhotoSession();
+        walkPlanRequest = new WalkPlanRequest();
     }
 
     // onStart() is called on application start up
@@ -147,7 +149,7 @@ class touch_grassApp extends Application.AppBase {
             }
         }
         if (flowState == GRASS_TIME) {
-            // Start GPS a step early so a fix is ready when the map opens.
+            walkPlanRequest.reset();
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
             startAlarm();
         } else if (flowState == WALK) {
@@ -224,8 +226,10 @@ class touch_grassApp extends Application.AppBase {
         }
     }
 
-    // GPS fixes are read with Position.getInfo() when the map draws.
     function onPosition(info as Position.Info) as Void {
+        if (flowState == GRASS_TIME || flowState == MAP) {
+            walkPlanRequest.request();
+        }
         WatchUi.requestUpdate();
     }
 

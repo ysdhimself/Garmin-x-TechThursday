@@ -67,15 +67,21 @@ module WalkData {
     // ---- lifecycle ----
 
     function start() as Void {
-        if (_route == null) {
-            var plan = WatchUi.loadResource(Rez.JsonData.walkRoute) as Dictionary;
-            _route = (plan["route"] as Dictionary)["points"];
-            var dest = plan["destination"] as Dictionary;
-            var p = dest["point"] as Array<Number>;
-            _entryLat = p[0].toDouble() / 1000000.0d;
-            _entryLon = p[1].toDouble() / 1000000.0d;
-            _radius = dest["arrivalRadiusM"] as Number;
+        var httpPlan = getApp().walkPlanRequest.plan;
+        var plan;
+        if (httpPlan != null) {
+            plan = httpPlan;
+            System.println("WalkData: using walk plan from backend");
+        } else {
+            plan = WatchUi.loadResource(Rez.JsonData.walkRoute) as Dictionary;
+            System.println("WalkData: using bundled walk plan fallback");
         }
+        _route = (plan["route"] as Dictionary)["points"];
+        var dest = plan["destination"] as Dictionary;
+        var p = dest["point"] as Array<Number>;
+        _entryLat = p[0].toDouble() / 1000000.0d;
+        _entryLon = p[1].toDouble() / 1000000.0d;
+        _radius = dest["arrivalRadiusM"] as Number;
         _mode = WAITING;
         _startMs = System.getTimer();
         _lastTickMs = _startMs;
