@@ -1,0 +1,4 @@
+<resources>
+    <!-- The walk plan the FIT files in ../../fixtures follow. -->
+    <jsonData id="route" filename="../../fixtures/route-edmonton.json"/>
+</resources>

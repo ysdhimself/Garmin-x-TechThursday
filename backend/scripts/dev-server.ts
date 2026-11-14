@@ -7,7 +7,7 @@
 import { createServer, type ServerResponse } from "node:http";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { findGrassRoute, fixtureProvider, isFailure, liveProviderFromEnv, RoutingError, type RoutingProvider } from "../src/routing/index.ts";
+import { findGrassRoute, fixtureProviderFromEnv, isFailure, liveProviderFromEnv, RoutingError, type RoutingProvider } from "../src/routing/index.ts";
 
 const envFile = fileURLToPath(new URL("../.env", import.meta.url));
 if (existsSync(envFile)) process.loadEnvFile(envFile);
@@ -18,7 +18,7 @@ const STATUS = { INVALID_REQUEST: 400, NO_ROUTE: 404, PROVIDER_UNAVAILABLE: 503 
 
 let provider: RoutingProvider | RoutingError;
 try {
-  provider = mode === "live" ? liveProviderFromEnv() : fixtureProvider();
+  provider = mode === "live" ? liveProviderFromEnv() : fixtureProviderFromEnv();
 } catch (e) {
   provider = e as RoutingError; // reported per request so /health still answers
 }
