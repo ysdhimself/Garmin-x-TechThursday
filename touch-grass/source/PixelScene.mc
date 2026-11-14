@@ -8,6 +8,8 @@ import Toybox.System;
 module PixelScene {
 
     const GRID = 60;
+    // Length of the fake touch challenge, in seconds (matches the app's FAKE_TOUCH_MS).
+    const TOUCH_SECONDS = 2.5;
     const RING_FRAME_MS = 125;
     const RING_CYCLE_MS = 2000;
     const SKY = 0x55AAFF;
@@ -67,7 +69,21 @@ module PixelScene {
         for (var i = 0; i < segments; i += 1) {
             cell(15 + i * 4, 49, 3, 3, i < filled ? BLADE : GRASS);
         }
+        grassTimer(dc, progress);
         _dc = null;
+    }
+
+    // Yellow digital MM:SS countdown under the bar, derived from the bar's
+    // progress so the two stay in sync (full bar = 00:00). Drawn only while
+    // the challenge runs; rounds up so it starts at the full length.
+    function grassTimer(dc as Dc, progress as Float) as Void {
+        var remaining = (1.0 - progress) * TOUCH_SECONDS;
+        var seconds = remaining.toNumber();
+        if (remaining > seconds) {
+            seconds += 1;
+        }
+        var text = (seconds / 60).format("%02d") + ":" + (seconds % 60).format("%02d");
+        PixelFont.draw(dc, text, dc.getWidth() / 2, _top + 54 * _cell, _cell * 3 / 4, SUN, SOIL);
     }
 
     // Invitation screen: the same meadow, with an alarm clock for a sun.

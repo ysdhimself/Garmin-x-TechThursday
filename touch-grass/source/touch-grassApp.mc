@@ -20,6 +20,11 @@ class touch_grassApp extends Application.AppBase {
     var flowState as FlowState = PASSIVE;
 
     private const FAKE_TOUCH_MS = 2500;
+    // How long "GRASS TOUCHED" shows before the flow advances on its own.
+    private const TOUCHED_HOLD_MS = 2000;
+    // How long "All done" shows before returning to the title screen.
+    private const DONE_HOLD_MS = 2000;
+    private var _doneAt as Number = 0;
     private var _touchStartedAt as Number? = null;
     private var _redrawTimer as Timer.Timer? = null;
     // Two clock ring cycles, so every other shaking burst buzzes.
@@ -62,6 +67,9 @@ class touch_grassApp extends Application.AppBase {
         flowState = (flowState == DONE ? PASSIVE : flowState + 1) as FlowState;
         if (flowState == GRASS_TIME) {
             startAlarm();
+        } else if (flowState == DONE) {
+            _doneAt = System.getTimer();
+            startRedraws(250);
         } else {
             stopRedraws();
         }
@@ -125,8 +133,18 @@ class touch_grassApp extends Application.AppBase {
     }
 
     function onRedraw() as Void {
-        if (flowState == TOUCH_GRASS && touchProgress() == 1.0) {
-            stopRedraws();
+        // Once the challenge passes, show "GRASS TOUCHED" briefly, then
+        // move on by itself (START skips the wait).
+        var startedAt = _touchStartedAt;
+        if (flowState == TOUCH_GRASS && startedAt != null
+                && System.getTimer() - startedAt >= FAKE_TOUCH_MS + TOUCHED_HOLD_MS) {
+            advanceFlow();
+            return;
+        }
+        // "All done" shows briefly, then the flow returns to the title screen.
+        if (flowState == DONE && System.getTimer() - _doneAt >= DONE_HOLD_MS) {
+            advanceFlow();
+            return;
         }
         if (flowState == GRASS_TIME) {
             // Buzz on each new BUZZ_EVERY_MS boundary, which lines up with
