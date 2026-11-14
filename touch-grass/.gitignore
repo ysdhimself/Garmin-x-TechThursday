@@ -1,0 +1,5 @@
+﻿bin/
+*.prg
+*.iq
+*.der
+.DS_Store
