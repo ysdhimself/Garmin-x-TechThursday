@@ -1,5 +1,6 @@
 import Toybox.Graphics;
 import Toybox.Lang;
+import Toybox.System;
 
 // Pixel-art flow screens: a meadow on a 60 × 60 grid of chunky cells.
 // Colours stay inside the fēnix 7's 64-colour palette (each channel
@@ -7,6 +8,8 @@ import Toybox.Lang;
 module PixelScene {
 
     const GRID = 60;
+    const RING_FRAME_MS = 125;
+    const RING_CYCLE_MS = 2000;
     const SKY = 0x55AAFF;
     const HAZE = 0xAAFFFF;
     const SUN = 0xFFFF55;
@@ -68,27 +71,41 @@ module PixelScene {
     }
 
     // Invitation screen: the same meadow, with an alarm clock for a sun.
+    // The clock rings in bursts: each RING_CYCLE_MS is one second of
+    // shaking, then a second of rest.
     function drawGrassTime(dc as Dc) as Void {
         meadow(dc);
+        var now = System.getTimer();
+        var frame = now / RING_FRAME_MS;
+        var ringing = now % RING_CYCLE_MS < RING_CYCLE_MS / 2;
+        var x = 35;
+        if (ringing) {
+            x += frame % 2 == 0 ? -1 : 1;
+            // Ring marks on both sides.
+            cell(32, 5, 1, 2, CLOUD);
+            cell(31, 8, 1, 2, CLOUD);
+            cell(46, 5, 1, 2, CLOUD);
+            cell(47, 8, 1, 2, CLOUD);
+        }
         // Bells and legs.
-        cell(35, 3, 2, 1, RED);
-        cell(42, 3, 2, 1, RED);
-        cell(36, 13, 1, 1, NAVY);
-        cell(42, 13, 1, 1, NAVY);
+        cell(x, 3, 2, 1, RED);
+        cell(x + 7, 3, 2, 1, RED);
+        cell(x + 1, 13, 1, 1, NAVY);
+        cell(x + 7, 13, 1, 1, NAVY);
         // Body.
-        cell(37, 4, 5, 1, RED);
-        cell(36, 5, 7, 1, RED);
-        cell(35, 6, 9, 5, RED);
-        cell(36, 11, 7, 1, RED);
-        cell(37, 12, 5, 1, RED);
+        cell(x + 2, 4, 5, 1, RED);
+        cell(x + 1, 5, 7, 1, RED);
+        cell(x, 6, 9, 5, RED);
+        cell(x + 1, 11, 7, 1, RED);
+        cell(x + 2, 12, 5, 1, RED);
         // Face and hands.
-        cell(37, 5, 5, 1, CLOUD);
-        cell(36, 6, 7, 5, CLOUD);
-        cell(37, 11, 5, 1, CLOUD);
-        cell(39, 6, 1, 3, NAVY);
-        cell(39, 8, 3, 1, NAVY);
+        cell(x + 2, 5, 5, 1, CLOUD);
+        cell(x + 1, 6, 7, 5, CLOUD);
+        cell(x + 2, 11, 5, 1, CLOUD);
+        cell(x + 4, 6, 1, 3, NAVY);
+        cell(x + 4, 8, 3, 1, NAVY);
         title(dc, "GRASS", BLADE, SOIL, "TIME!", SUN, SUN_EDGE);
-        footer(dc, "PERMIT EXPIRING", "START: GO");
+        footer(dc, "TIME TO WALK", "START: GO");
         _dc = null;
     }
 
