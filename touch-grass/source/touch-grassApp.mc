@@ -1,4 +1,5 @@
 import Toybox.Application;
+import Toybox.Attention;
 import Toybox.Lang;
 import Toybox.System;
 import Toybox.Timer;
@@ -20,7 +21,10 @@ class touch_grassApp extends Application.AppBase {
 
     private const FAKE_TOUCH_MS = 2500;
     private var _touchStartedAt as Number? = null;
-    private var _touchTimer as Timer.Timer? = null;
+    private var _redrawTimer as Timer.Timer? = null;
+    // Two clock ring cycles, so every other shaking burst buzzes.
+    private const BUZZ_EVERY_MS = 2 * PixelScene.RING_CYCLE_MS;
+    private var _lastBuzz as Number = 0;
 
     function initialize() {
         AppBase.initialize();
@@ -56,6 +60,11 @@ class touch_grassApp extends Application.AppBase {
             _touchStartedAt = null;
         }
         flowState = (flowState == DONE ? PASSIVE : flowState + 1) as FlowState;
+        if (flowState == GRASS_TIME) {
+            startAlarm();
+        } else {
+            stopRedraws();
+        }
         WatchUi.requestUpdate();
     }
 
@@ -73,17 +82,60 @@ class touch_grassApp extends Application.AppBase {
     // GrassMotionChallenge: it always passes after FAKE_TOUCH_MS.
     private function startFakeTouch() as Void {
         _touchStartedAt = System.getTimer();
-        var timer = new Timer.Timer();
-        timer.start(method(:onFakeTouchTick), 100, true);
-        _touchTimer = timer;
+        startRedraws(100);
         WatchUi.requestUpdate();
     }
 
-    function onFakeTouchTick() as Void {
-        var timer = _touchTimer;
-        if (timer != null && touchProgress() == 1.0) {
+    // Buzz now, then keep redrawing so the alarm clock rings; onRedraw
+    // buzzes again every BUZZ_EVERY_MS while the step stays open.
+    private function startAlarm() as Void {
+        buzz();
+        // Skip the next boundary if it is under half a period away, so the
+        // first repeat comes 2–6 seconds after this buzz, not right on top.
+        _lastBuzz = (System.getTimer() + BUZZ_EVERY_MS / 2) / BUZZ_EVERY_MS;
+        startRedraws(PixelScene.RING_FRAME_MS);
+    }
+
+    // Three quick pulses, about as long as one burst of clock shaking.
+    private function buzz() as Void {
+        if (Attention has :vibrate) {
+            var pulses = [] as Array<Attention.VibeProfile>;
+            for (var i = 0; i < 3; i += 1) {
+                pulses.add(new Attention.VibeProfile(100, 250));
+                pulses.add(new Attention.VibeProfile(0, 100));
+            }
+            Attention.vibrate(pulses);
+        }
+    }
+
+    // Redraws the screen every periodMs for animations.
+    private function startRedraws(periodMs as Number) as Void {
+        stopRedraws();
+        var timer = new Timer.Timer();
+        timer.start(method(:onRedraw), periodMs, true);
+        _redrawTimer = timer;
+    }
+
+    private function stopRedraws() as Void {
+        var timer = _redrawTimer;
+        if (timer != null) {
             timer.stop();
-            _touchTimer = null;
+            _redrawTimer = null;
+        }
+    }
+
+    function onRedraw() as Void {
+        if (flowState == TOUCH_GRASS && touchProgress() == 1.0) {
+            stopRedraws();
+        }
+        if (flowState == GRASS_TIME) {
+            // Buzz on each new BUZZ_EVERY_MS boundary, which lines up with
+            // the start of a clock-shaking burst.
+            var slot = System.getTimer() / BUZZ_EVERY_MS;
+            if (slot != _lastBuzz) {
+                _lastBuzz = slot;
+                buzz();
+            }
         }
         WatchUi.requestUpdate();
     }
