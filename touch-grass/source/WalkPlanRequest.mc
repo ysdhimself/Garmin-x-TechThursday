@@ -13,17 +13,22 @@ class WalkPlanRequest {
     function initialize() {
     }
 
+    private const FALLBACK_LAT_E6 = 51044277;
+    private const FALLBACK_LON_E6 = -114055682;
+
     function request() as Void {
         if (_inFlight || status.equals("ready")) { return; }
+        var latE6 = FALLBACK_LAT_E6;
+        var lonE6 = FALLBACK_LON_E6;
         var info = Position.getInfo();
-        if (info.position == null || info.accuracy == Position.QUALITY_NOT_AVAILABLE) {
-            return;
-        }
-        var deg = (info.position as Position.Location).toDegrees();
-        var lat = deg[0].toFloat();
-        var lon = deg[1].toFloat();
-        if (lat.abs() > 90.0 || lon.abs() > 180.0) {
-            return;
+        if (info.position != null && info.accuracy != Position.QUALITY_NOT_AVAILABLE) {
+            var deg = (info.position as Position.Location).toDegrees();
+            var lat = deg[0].toFloat();
+            var lon = deg[1].toFloat();
+            if (lat.abs() <= 90.0 && lon.abs() <= 180.0) {
+                latE6 = (lat * 1000000).toNumber();
+                lonE6 = (lon * 1000000).toNumber();
+            }
         }
         var baseUrl = Application.Properties.getValue("WalkPlanUrl");
         if (!(baseUrl instanceof String) || baseUrl.length() == 0) {
@@ -33,8 +38,6 @@ class WalkPlanRequest {
         while (baseUrl.length() > 0 && baseUrl.substring(baseUrl.length() - 1, baseUrl.length()).equals("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
-        var latE6 = (lat * 1000000).toNumber();
-        var lonE6 = (lon * 1000000).toNumber();
         status = "loading";
         _inFlight = true;
         try {

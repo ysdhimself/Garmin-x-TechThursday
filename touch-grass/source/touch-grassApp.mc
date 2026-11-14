@@ -151,6 +151,7 @@ class touch_grassApp extends Application.AppBase {
         if (flowState == GRASS_TIME) {
             walkPlanRequest.reset();
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
+            walkPlanRequest.request();
             startAlarm();
         } else if (flowState == WALK) {
             // Live data (simulator Activity Data playback / GPS), or the built-in demo walk after 3 s.
