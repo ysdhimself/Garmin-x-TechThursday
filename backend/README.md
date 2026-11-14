@@ -14,11 +14,16 @@ For the module-level detail (file table, JEV API notes, status checklist), see
 Requires Node 22.6+ (developed on Node 24). There are no npm dependencies; Node runs the TypeScript directly.
 
 ```powershell
-# 1. Config: copy the template and fill in your JEV key (backend/.env is git-ignored)
-Copy-Item backend/.env.example backend/.env
+cd backend
 
-# 2. Start the dev server (http://localhost:8787)
-node backend/scripts/dev-server.ts
+# 1. Config: copy the template and fill in your JEV key (backend/.env is git-ignored)
+Copy-Item .env.example .env
+
+# 2. Start the production server (http://0.0.0.0:8787, with CORS + rate limiting)
+npm start
+
+# Or start the Part 2 dev server (same contract, no CORS/rate limiting)
+# npm run dev
 
 # 3. In a second terminal
 Invoke-RestMethod http://localhost:8787/health
@@ -32,8 +37,9 @@ On macOS/Linux, use `cp` and `curl -X POST ... -d '<json>'` instead. In Windows 
 Other checks:
 
 ```powershell
-node --test backend/src/routing/core.test.ts backend/src/routing/discovery.test.ts   # offline tests, no network
-node backend/scripts/live-check.ts 53.546 -113.4938 120 $env:TEMP                   # real tiles + JEV + router, debug image
+npm test                                                                             # offline tests, no network
+npm run live-check -- 53.546 -113.4938 120 $env:TEMP                                 # real tiles + JEV + router, debug image
+bash scripts/smoke-test.sh                                                           # HTTP smoke test (start server first)
 ```
 
 `live-check` writes `live-check.png` (map, block grid, green blocks tinted, origin in red) and `live-check.geojson`
@@ -49,7 +55,7 @@ node backend/scripts/live-check.ts 53.546 -113.4938 120 $env:TEMP               
         │  POST /walk-plan
         │  {originLatE6, originLonE6, maxWalkS}
         ▼
-                              HTTP layer  (scripts/dev-server.ts now; Part 3's service later)
+                              HTTP layer  (src/server.ts — CORS, rate limiting, size enforcement)
                                      │
                                      ▼
                               findGrassRoute()   (src/routing/findGrassRoute.ts)
@@ -67,7 +73,7 @@ node backend/scripts/live-check.ts 53.546 -113.4938 120 $env:TEMP               
  arrival + hand-wave check on-watch
 ```
 
-### 1. HTTP layer: `scripts/dev-server.ts`
+### 1. HTTP layer: `src/server.ts` (production) / `scripts/dev-server.ts` (Part 2 testing)
 
 - On startup it reads `backend/.env` and picks the provider from `ROUTING_MODE` (`fixture` or `live`).
 - `GET /health` returns `{ ok, mode }`.
@@ -76,8 +82,9 @@ node backend/scripts/live-check.ts 53.546 -113.4938 120 $env:TEMP               
   Every reply, errors included, is `application/json`.
 - It never logs coordinates; it logs only method, path, status and time.
 
-This is a **test server** (no HTTPS, no rate limiting). Part 3 owns the production service and will wrap the same
-`findGrassRoute()` function.
+The production server (`npm start` / `src/server.ts`) adds CORS headers, rate limiting (10 req/min/IP),
+request body cap (1 KB), 30 s execution timeout, and response size enforcement (8,192 bytes).
+The dev server (`scripts/dev-server.ts`) has none of these guards and is for Part 2 testing only.
 
 ### 2. Orchestrator: `src/routing/findGrassRoute.ts`
 
@@ -97,7 +104,7 @@ problem (`PROVIDER_UNAVAILABLE`).
 
 ### 3a. Fixture provider: `providers/fixture.ts`
 
-- Reads `fixtures/routes/demo-park.json`. If the origin is within 250 m of the fixture point it returns that plan;
+- Reads `backend/fixtures/routes/demo-park.json`. If the origin is within 250 m of the fixture point it returns that plan;
   otherwise `null`.
 - Instant, needs no network or keys, always labelled `source: "fixture"` so the watch can show demo mode.
 - For the demo and for Parts 1 and 3 to develop against. The current fixture geography is a **synthetic placeholder**
@@ -171,7 +178,8 @@ Git-ignored; never commit it. `backend/.env.example` is the committed template.
 | `TILE_URL`, `TILE_ZOOM` | Map tile source and zoom | OSM, `17` |
 | `ROUTER_URL` | OSRM-compatible foot router | FOSSGIS `routed-foot` |
 | `USER_AGENT` | Sent to tile and routing servers | `touch-grass-demo/0.1` |
-| `PORT` | Dev server port | `8787` |
+| `PORT` | Server port (both production and dev) | `8787` |
+| `HOST` | Bind address (production server only) | `0.0.0.0` |
 
 **Cost and fair use:** each JEV block costs about 330–600 input tokens, so one live request is roughly 50–90k tokens
 at 64 px blocks. The OSM tile server and the FOSSGIS router allow light use only; that is fine for a demo, but use
@@ -181,15 +189,15 @@ other hosts for anything more.
 
 | Part | Owns |
 |---|---|
-| Part 2 (routing) | `backend/src/routing/`, `fixtures/routes/`, and the test tools in `backend/scripts/` |
-| Part 3 (service) | The production HTTP service around `findGrassRoute()`: HTTPS, rate limiting, hosting, `backend/package.json` |
+| Part 2 (routing) | `backend/src/routing/`, `backend/fixtures/routes/`, and the test tools in `backend/scripts/` |
+| Part 3 (service) | `backend/src/server.ts`, `backend/package.json`, `backend/tsconfig.json`, `backend/scripts/smoke-test.sh` |
 | Part 1 (watch app) | The "stand up" prompt, GPS, the request to `/walk-plan`, drawing the map, arrival |
 | Part 4 (motion) | The hand-wave check after arrival; no backend involvement |
 
 ## Not done yet
 
 - **Real fixture park:** the demo fixture is synthetic; replace it with a checked park near the demo venue.
-- **Production service:** Part 3's HTTPS endpoint, reachable from the Connect IQ simulator and the watch.
+- **HTTPS termination:** the production server serves HTTP; use a reverse proxy or tunnel (e.g. ngrok) for HTTPS in the demo.
 - **Simulator test:** a Monkey C `makeWebRequest()` call to this endpoint has not been tried yet.
 - **Small parks:** only what the map draws in green counts, and regions smaller than 2 blocks (about 46 m × 92 m)
   are dropped, so very small green patches are not offered.

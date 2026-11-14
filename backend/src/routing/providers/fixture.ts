@@ -4,7 +4,7 @@ import { RoutingError } from "../errors.ts";
 import { haversineM } from "../geo.ts";
 import type { Candidate, PointE6, RoutingProvider, WalkPlan } from "../types.ts";
 
-const FIXTURE_DIR = fileURLToPath(new URL("../../../../fixtures/routes/", import.meta.url));
+const FIXTURE_DIR = fileURLToPath(new URL("../../../fixtures/routes/", import.meta.url));
 
 /** Fixture mode serves the prepared plan to any origin this close to the fixture origin. */
 const MATCH_RADIUS_M = 250;
