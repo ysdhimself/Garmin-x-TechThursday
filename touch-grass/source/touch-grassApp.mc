@@ -1,8 +1,26 @@
 import Toybox.Application;
 import Toybox.Lang;
+import Toybox.System;
+import Toybox.Timer;
 import Toybox.WatchUi;
 
+// The Touch Grass flow, in order. DONE returns to PASSIVE.
+enum FlowState {
+    PASSIVE,
+    GRASS_TIME,
+    MAP,
+    PROVE_IT,
+    TOUCH_GRASS,
+    DONE
+}
+
 class touch_grassApp extends Application.AppBase {
+
+    var flowState as FlowState = PASSIVE;
+
+    private const FAKE_TOUCH_MS = 2500;
+    private var _touchStartedAt as Number? = null;
+    private var _touchTimer as Timer.Timer? = null;
 
     function initialize() {
         AppBase.initialize();
@@ -19,6 +37,55 @@ class touch_grassApp extends Application.AppBase {
     // Return the initial view of your application here
     function getInitialView() as [Views] or [Views, InputDelegates] {
         return [ new touch_grassView(), new touch_grassDelegate() ];
+    }
+
+    // Placeholder: a button press moves to the next state until real
+    // triggers (backend, arrival, motion challenge) replace it.
+    // In TOUCH_GRASS, the first press starts the fake touch challenge and
+    // presses are ignored until it finishes.
+    function advanceFlow() as Void {
+        if (flowState == TOUCH_GRASS) {
+            var progress = touchProgress();
+            if (progress == null) {
+                startFakeTouch();
+                return;
+            }
+            if (progress < 1.0) {
+                return;
+            }
+            _touchStartedAt = null;
+        }
+        flowState = (flowState == DONE ? PASSIVE : flowState + 1) as FlowState;
+        WatchUi.requestUpdate();
+    }
+
+    // Fake touch challenge progress: null before START, then 0.0 to 1.0.
+    function touchProgress() as Float? {
+        var startedAt = _touchStartedAt;
+        if (startedAt == null) {
+            return null;
+        }
+        var progress = (System.getTimer() - startedAt).toFloat() / FAKE_TOUCH_MS;
+        return progress < 1.0 ? progress : 1.0;
+    }
+
+    // The accelerometer is unreliable, so this stands in for
+    // GrassMotionChallenge: it always passes after FAKE_TOUCH_MS.
+    private function startFakeTouch() as Void {
+        _touchStartedAt = System.getTimer();
+        var timer = new Timer.Timer();
+        timer.start(method(:onFakeTouchTick), 100, true);
+        _touchTimer = timer;
+        WatchUi.requestUpdate();
+    }
+
+    function onFakeTouchTick() as Void {
+        var timer = _touchTimer;
+        if (timer != null && touchProgress() == 1.0) {
+            timer.stop();
+            _touchTimer = null;
+        }
+        WatchUi.requestUpdate();
     }
 
 }
