@@ -26,7 +26,7 @@ if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
 const classifier =
   (env.CLASSIFIER ?? "jev") === "color" || !env.JEV_API_KEY
     ? colorClassifier()
-    : jevClassifier({ url: env.JEV_API_URL!, apiKey: env.JEV_API_KEY });
+    : jevClassifier({ url: env.JEV_API_URL!, apiKey: env.JEV_API_KEY, model: env.JEV_MODEL || undefined });
 console.log(`classifier: ${classifier.name}${classifier.name === "color" && env.CLASSIFIER !== "color" ? " (no JEV key set, using colour fallback)" : ""}`);
 
 const provider = liveProvider({
@@ -36,6 +36,7 @@ const provider = liveProvider({
   routerUrl: env.ROUTER_URL ?? "http://localhost:5000",
   userAgent: env.USER_AGENT ?? "touch-grass-demo/0.1",
   minScore: env.GREEN_MIN_SCORE ? Number(env.GREEN_MIN_SCORE) : undefined,
+  blockPx: env.BLOCK_PX ? Number(env.BLOCK_PX) : undefined,
   onDebug: ({ mosaic, rows, cols, size, scores, regions }) => {
     const img = { ...mosaic.image, data: new Uint8Array(mosaic.image.data) };
     const min = Number(env.GREEN_MIN_SCORE ?? 0.5);

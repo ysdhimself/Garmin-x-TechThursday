@@ -125,6 +125,19 @@ export function encodePng(img: Image): Buffer {
   return Buffer.concat([SIG, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
 }
 
+/** Nearest-neighbour upscale so the shorter side is at least `minSide` (keeps map colours exact). */
+export function upscaleTo(img: Image, minSide: number): Image {
+  const k = Math.max(1, Math.ceil(minSide / Math.min(img.width, img.height)));
+  if (k === 1) return img;
+  const out = newImage(img.width * k, img.height * k, [0, 0, 0, 0]);
+  for (let y = 0; y < out.height; y++)
+    for (let x = 0; x < out.width; x++) {
+      const s = (Math.floor(y / k) * img.width + Math.floor(x / k)) * 4;
+      out.data.set(img.data.subarray(s, s + 4), (y * out.width + x) * 4);
+    }
+  return out;
+}
+
 export function crop(img: Image, x0: number, y0: number, w: number, h: number): Image {
   const out = newImage(w, h, [0, 0, 0, 0]);
   for (let y = 0; y < h; y++) {

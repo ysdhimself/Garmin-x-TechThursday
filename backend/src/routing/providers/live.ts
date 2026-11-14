@@ -35,7 +35,7 @@ export function liveProvider(o: LiveOptions): RoutingProvider {
       const mosaic = await fetchMosaic(bboxAround(origin, radiusM), {
         url: o.tileUrl, zoom: o.tileZoom, userAgent: o.userAgent, fetchFn: o.fetchFn,
       });
-      const grid = cutBlocks(mosaic, o.blockPx ?? 32);
+      const grid = cutBlocks(mosaic, o.blockPx ?? 64);
       const scores = await o.classifier.classify(grid.blocks);
       const regions = findGreenRegions(grid, scores, mosaic, origin, { minScore: o.minScore, minBlocks: o.minBlocks });
       o.onDebug?.({ mosaic, rows: grid.rows, cols: grid.cols, size: grid.size, scores, regions });
@@ -79,7 +79,7 @@ export function liveProviderFromEnv(env: Record<string, string | undefined> = pr
   if ((env.CLASSIFIER ?? "jev") === "color") classifier = colorClassifier();
   else {
     if (!env.JEV_API_KEY || !env.JEV_API_URL) throw new RoutingError("PROVIDER_UNAVAILABLE", "JEV is not configured (JEV_API_KEY / JEV_API_URL).");
-    classifier = jevClassifier({ url: env.JEV_API_URL, apiKey: env.JEV_API_KEY, fetchFn });
+    classifier = jevClassifier({ url: env.JEV_API_URL, apiKey: env.JEV_API_KEY, model: env.JEV_MODEL || undefined, fetchFn });
   }
   if (!env.ROUTER_URL) throw new RoutingError("PROVIDER_UNAVAILABLE", "ROUTER_URL is not configured.");
   return liveProvider({
@@ -89,6 +89,7 @@ export function liveProviderFromEnv(env: Record<string, string | undefined> = pr
     routerUrl: env.ROUTER_URL,
     userAgent: env.USER_AGENT ?? "touch-grass-demo/0.1",
     minScore: env.GREEN_MIN_SCORE ? Number(env.GREEN_MIN_SCORE) : undefined,
+    blockPx: env.BLOCK_PX ? Number(env.BLOCK_PX) : undefined,
     fetchFn,
   });
 }

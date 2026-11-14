@@ -111,22 +111,53 @@ test("live: tile server down -> PROVIDER_UNAVAILABLE", async () => {
   assert.ok(isFailure(r) && r.error.code === "PROVIDER_UNAVAILABLE");
 });
 
-test("JEV client: sends base64 PNG blocks with bearer key, parses scores and label results", async () => {
-  let seen: any;
-  const f = fakeFetch({ jev: (body) => { seen = body; return new Response(JSON.stringify({ scores: body.images.map(() => 0.9) })); } });
-  const grid = cutBlocks({ image: parkTile(), zoom: Z, originPx: [0, 0] }, 32);
-  const s = await jevClassifier({ url: "http://jev/classify", apiKey: "k", fetchFn: f, batchSize: 100 }).classify(grid.blocks);
-  assert.equal(s.length, 64);
-  assert.equal(decodePng(Buffer.from(seen.images[0], "base64")).width, 32);
+/** Fake TypeSafe System One: answers each noul question by scoring the image its instructions name. */
+function systemOne(score: (img: Image) => number, seen?: any[]) {
+  return (body: any) => {
+    seen?.push(body);
+    const answers: Record<string, object> = {};
+    for (const [name, q] of Object.entries<any>(body.questions)) {
+      const id = Object.keys(body.assets).find((a) => q.instructions.includes(a))!;
+      answers[name] = { type: "noul", noul: score(decodePng(Buffer.from(body.assets[id].data_base64, "base64"))) };
+    }
+    return new Response(JSON.stringify({ model: "jev-test", answers, usage: { input_tokens: 1, output_tokens: 1 } }));
+  };
+}
 
-  const f2 = fakeFetch({ jev: (b) => new Response(JSON.stringify({ results: b.images.map((_: any, i: number) => (i ? { label: "road", confidence: 0.8 } : { label: "grass", confidence: 0.9 })) })) });
-  const s2 = await jevClassifier({ url: "http://jev/classify", apiKey: "k", fetchFn: f2 }).classify(grid.blocks.slice(0, 2));
-  assert.ok(Math.abs(s2[0]! - 0.9) < 1e-9 && Math.abs(s2[1]! - 0.2) < 1e-9);
+test("JEV client: System One request shape (assets + noul questions, 280px images) and answer parsing", async () => {
+  const seen: any[] = [];
+  const f = fakeFetch({ jev: systemOne((img) => (img.data[1]! > 245 ? 0.8 : 0.2), seen) });
+  const grid = cutBlocks({ image: parkTile(), zoom: Z, originPx: [0, 0] }, 32);
+  const s = await jevClassifier({ url: "http://jev/v1/systemone", apiKey: "k", fetchFn: f }).classify(grid.blocks);
+  assert.equal(s.length, 64);
+  assert.equal(seen.length, 8); // 64 blocks / batches of 8
+  const b = seen[0];
+  assert.equal(b.model, "jev-latest");
+  assert.equal(Object.keys(b.assets).length, 8);
+  const a = Object.values<any>(b.assets)[0];
+  assert.equal(a.type, "image");
+  assert.equal(a.format, "png");
+  const img = decodePng(Buffer.from(a.data_base64, "base64"));
+  assert.ok(img.width >= 280 && img.height >= 280);
+  assert.equal((Object.values<any>(b.questions)[0]).type, "noul");
+  // Park block (row 2, col 5 -> inside x128..224, y64..192) vs background block (0,0)
+  assert.equal(s[2 * 8 + 5], 0.8);
+  assert.equal(s[0], 0.2);
+});
+
+test("JEV client: a 400 for a too-large batch is split and retried", async () => {
+  const sizes: number[] = [];
+  const ok = systemOne(() => 0.5);
+  const f = fakeFetch({ jev: (body) => { const n = Object.keys(body.assets).length; sizes.push(n); return n > 2 ? new Response('{"detail":{}}', { status: 400 }) : ok(body); } });
+  const grid = cutBlocks({ image: parkTile(), zoom: Z, originPx: [0, 0] }, 64);
+  const s = await jevClassifier({ url: "http://jev/v1/systemone", apiKey: "k", fetchFn: f, batchSize: 8 }).classify(grid.blocks.slice(0, 8));
+  assert.equal(s.length, 8);
+  assert.deepEqual(sizes, [8, 4, 2, 2, 4, 2, 2]);
 });
 
 test("JEV client: outage or malformed reply -> PROVIDER_UNAVAILABLE, key never leaked", async () => {
   const grid = cutBlocks({ image: parkTile(), zoom: Z, originPx: [0, 0] }, 128);
-  for (const jev of [() => new Response("x", { status: 500 }), () => new Response(JSON.stringify({ scores: [2] }))]) {
+  for (const jev of [() => new Response("x", { status: 500 }), () => new Response(JSON.stringify({ answers: { b0: { type: "noul", noul: 2 } } }))]) {
     await assert.rejects(
       jevClassifier({ url: "http://jev/c", apiKey: "SECRET", fetchFn: fakeFetch({ jev }) }).classify(grid.blocks),
       (e: any) => e instanceof RoutingError && e.code === "PROVIDER_UNAVAILABLE" && !e.message.includes("SECRET"),
@@ -137,7 +168,7 @@ test("JEV client: outage or malformed reply -> PROVIDER_UNAVAILABLE, key never l
 test("live end-to-end through the JEV path", async () => {
   // Fake JEV that scores like the colour classifier, to prove the wiring.
   const { greenFraction } = await import("./providers/jev.ts");
-  const f = fakeFetch({ jev: (b) => new Response(JSON.stringify({ scores: b.images.map((s: string) => greenFraction(decodePng(Buffer.from(s, "base64")))) })) });
+  const f = fakeFetch({ jev: systemOne(greenFraction) });
   const p = liveProviderFromEnv({ CLASSIFIER: "jev", JEV_API_KEY: "k", JEV_API_URL: "http://jev/c", ROUTER_URL: "http://router", TILE_URL: "http://tiles/{z}/{x}/{y}.png", TILE_ZOOM: "17" }, f);
   const r = await findGrassRoute(ORIGIN[0], ORIGIN[1], 120, p);
   assert.ok(!isFailure(r), JSON.stringify(r));
