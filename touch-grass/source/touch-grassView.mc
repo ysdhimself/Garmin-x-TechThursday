@@ -29,6 +29,14 @@ class touch_grassView extends WatchUi.View {
     function onUpdate(dc as Dc) as Void {
         var app = getApp();
         var state = app.flowState;
+        if (state == PASSIVE) {
+            PixelScene.drawPassive(dc);
+            return;
+        }
+        if (state == GRASS_TIME) {
+            PixelScene.drawGrassTime(dc);
+            return;
+        }
         var x = dc.getWidth() / 2;
         var y = dc.getHeight() / 2;
         var center = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
