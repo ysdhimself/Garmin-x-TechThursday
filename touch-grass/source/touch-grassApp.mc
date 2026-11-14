@@ -46,6 +46,12 @@ class touch_grassApp extends Application.AppBase {
 
     // onStart() is called on application start up
     function onStart(state as Dictionary?) as Void {
+        var config = WatchUi.loadResource(Rez.JsonData.localConfig) as Dictionary;
+        var url = config["backendUrl"] as String;
+        if (url.length() > 0) {
+            Application.Properties.setValue("PhotoBaseUrl", url);
+            Application.Properties.setValue("WalkPlanUrl", url);
+        }
     }
 
     // onStop() is called when your application is exiting
@@ -152,7 +158,8 @@ class touch_grassApp extends Application.AppBase {
         } else if (flowState == WALK) {
             // Live data (simulator Activity Data playback / GPS), or the built-in demo walk after 3 s.
             Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
-            WalkData.start();
+            var config = WatchUi.loadResource(Rez.JsonData.localConfig) as Dictionary;
+            WalkData.start(config["mockWalk"] == true);
             startRedraws(1000);
         } else if (flowState == SUMMARY) {
             _summaryAt = System.getTimer();

@@ -66,7 +66,7 @@ module WalkData {
 
     // ---- lifecycle ----
 
-    function start() as Void {
+    function start(useMock as Boolean) as Void {
         var httpPlan = getApp().walkPlanRequest.plan;
         var plan;
         if (httpPlan != null) {
@@ -82,13 +82,15 @@ module WalkData {
         _entryLat = p[0].toDouble() / 1000000.0d;
         _entryLon = p[1].toDouble() / 1000000.0d;
         _radius = dest["arrivalRadiusM"] as Number;
-        _mode = WAITING;
+        _mode = useMock ? DEMO : WAITING;
         _startMs = System.getTimer();
+        _demoStartMs = _startMs;
         _lastTickMs = _startMs;
         _lat = null; _lon = null; _speed = null; _hr = null; _cadence = null; _calTotal = null; _alt = null;
         _walkedM = 0.0d; _steps = 0.0; _inside = 0; _arrived = false;
         _walkStartMs = null; _lastMovingMs = null; _calAtWalk = null; _altAtWalk = null;
-        _restSum = 0; _restN = 0; _walkHrSum = 0; _walkHrN = 0; _hrPeak = null;
+        _restSum = useMock ? 68 : 0; _restN = useMock ? 1 : 0;
+        _walkHrSum = 0; _walkHrN = 0; _hrPeak = null;
         _cadSum = 0.0; _cadN = 0; _summary = null;
     }
 

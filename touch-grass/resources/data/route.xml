@@ -1,4 +1,5 @@
 <resources>
     <!-- Calgary: Platform Calgary to Central Library Garden (fallback when backend is unavailable). -->
     <jsonData id="walkRoute" filename="../../../backend/fixtures/routes/demo-park.json"/>
+    <jsonData id="localConfig" filename="local-config.json"/>
 </resources>

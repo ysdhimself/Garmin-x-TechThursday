@@ -22,6 +22,10 @@ npm-debug.log*
 .env.*
 !.env.example
 
+# Local lifecycle logs and Python bytecode
+/.run/
+__pycache__/
+
 # OS / editor
 .DS_Store
 Thumbs.db

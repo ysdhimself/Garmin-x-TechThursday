@@ -28,6 +28,46 @@ The commands below use Bash on Linux/macOS and run from the **repository root**.
 For Windows, use the native Garmin SDK tools and PowerShell equivalents; see the
 [backend guide](backend/README.md) for PowerShell examples.
 
+### Everyday shortcuts (Linux)
+
+After the one-time setup below, use the root [justfile](justfile). It requires
+[`just`](https://just.systems), Python 3, `lsof`, and the Node/Garmin tools below
+on PATH. For example, install just with `nix profile add nixpkgs#just` if you use Nix.
+
+```bash
+just up               # Start backend, build/load watch app; open simulator if needed
+just down             # Stop backend and unload watch app
+just restart          # Restart both; rebuild the watch app
+just server-start     # Backend only
+just server-stop
+just server-restart
+just app-start        # Watch app only
+just app-stop
+just app-restart      # Rebuild and reload the watch app
+just status
+just logs             # Follow logs; Ctrl-C stops following, not the services
+just check            # Test lifecycle safety against an unrelated running service
+```
+
+Processes run in the background, with logs in ignored `.run/`. Starting an
+already-running component is a no-op; use its restart command to reload changes.
+Local watch builds replay mock walking immediately, even with stationary simulator
+GPS, and apply `PUBLIC_BASE_URL` to both watch backend settings on startup. Set that
+variable to your HTTPS Funnel origin in `backend/.env`. Use
+`MOCK_WALK=0 just app-restart` to test live GPS instead. These local-only build
+overrides and the simulator binary live in `.run/`; the manual physical-watch
+build below keeps live GPS and normal app settings.
+The commands read `backend/.env`, then `.env.local` if present; local values win,
+and exported environment variables override both. A server restart invalidates
+existing photo sessions: BACK out of PROVE IT and reopen it to get a fresh QR.
+
+`down` and `app-stop` leave the simulator window and its saved app settings intact.
+They do **not** enable, disable, or otherwise modify Tailscale Funnel. The app
+stop command uses the SDK 9.3 simulator protocol and only targets this repo's app;
+these shortcuts are Linux-only, not physical-watch deployment commands.
+Do not change `PORT` while the server is running: stop it on the old port first.
+Override the build target/key with `DEVICE=fenix7 GARMIN_KEY=/path/to/key.der just up`.
+
 ### Prerequisites
 
 - **Node.js 22.18+ and npm**; development has been on Node 24.
